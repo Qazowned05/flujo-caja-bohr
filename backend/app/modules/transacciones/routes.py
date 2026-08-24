@@ -269,6 +269,7 @@ def list_transacciones(
     vendedor_id: uuid.UUID | None = None,
     sucursal_id: uuid.UUID | None = None,
     origen: OrigenTransaccion | None = None,
+    con_documento: bool | None = None,
     busqueda: str | None = None,
     include_inactive: bool = False,
     offset: int = Query(default=0, ge=0),
@@ -308,6 +309,14 @@ def list_transacciones(
         filters.append(Transaccion.sucursal_id == sucursal_id)
     if origen:
         filters.append(Transaccion.origen == origen)
+    if con_documento is True:
+        filters.extend([
+            Transaccion.documento.is_not(None), func.trim(Transaccion.documento) != ""
+        ])
+    elif con_documento is False:
+        filters.append(
+            or_(Transaccion.documento.is_(None), func.trim(Transaccion.documento) == "")
+        )
     if busqueda and busqueda.strip():
         term = f"%{busqueda.strip()}%"
         filters.append(

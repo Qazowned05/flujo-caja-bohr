@@ -136,6 +136,23 @@ def test_list_transacciones_searches_operation_or_description(client_and_session
     assert [item["n_operacion"] for item in by_description.json()["items"]] == ["PAG-002"]
 
 
+def test_list_transacciones_filters_by_document_presence(client_and_session):
+    client, session, user = client_and_session
+    account = make_account(session)
+    make_transaction(session, user, account, descripcion="Con documento", documento="FAC-001")
+    make_transaction(session, user, account, descripcion="Sin documento", documento=None)
+    make_transaction(session, user, account, descripcion="Documento vacio", documento="  ")
+
+    with_document = client.get("/api/v1/transacciones", params={"con_documento": "true"})
+    without_document = client.get("/api/v1/transacciones", params={"con_documento": "false"})
+
+    assert [item["descripcion"] for item in with_document.json()["items"]] == ["Con documento"]
+    assert {item["descripcion"] for item in without_document.json()["items"]} == {
+        "Sin documento",
+        "Documento vacio",
+    }
+
+
 def test_create_proyeccion_inherits_currency_status_and_audits(client_and_session):
     client, session, _ = client_and_session
     account = make_account(session, moneda="USD")

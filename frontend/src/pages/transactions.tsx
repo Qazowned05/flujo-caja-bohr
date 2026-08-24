@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Badge, Box, Button, Card, CardBody, Flex, Heading, HStack, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
+import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Badge, Box, Button, Card, CardBody, Flex, Heading, HStack, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Select, SimpleGrid, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
 import { api, type Transaction } from "../client/api";
 import { active, CatalogueSelect, Empty, ErrorBox, Field, Loading } from "../components/common";
 import { useCatalogues } from "../hooks/useCatalogues";
@@ -20,6 +22,37 @@ const statusColor: Record<Transaction["estado"], "red" | "green" | "yellow" | "g
   CONFIRMADO: "gray",
 };
 
+const toDate = (value: string) => (value ? new Date(`${value}T00:00:00`) : undefined);
+const toDateValue = (value: Date) =>
+  `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+
+function DateRangeFilter({
+  from,
+  until,
+  onChange,
+}: {
+  from: string;
+  until: string;
+  onChange: (range: DateRange | undefined) => void;
+}) {
+  const selected = from ? { from: toDate(from), to: toDate(until) } : undefined;
+  const label = from ? `${from}${until && until !== from ? ` a ${until}` : ""}` : "Seleccionar rango";
+  return (
+    <Popover placement="bottom-start">
+      <PopoverTrigger>
+        <Button w="full" variant="outline" justifyContent="flex-start" fontWeight="normal">
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent w="auto">
+        <PopoverBody p="2">
+          <DayPicker mode="range" selected={selected} onSelect={onChange} />
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function Transactions() {
   const initialFilters = new URLSearchParams(window.location.search);
   const [status, setStatus] = useState(() => initialFilters.get("estado") ?? "");
@@ -30,6 +63,7 @@ export function Transactions() {
   const [conceptId, setConceptId] = useState(() => initialFilters.get("concepto_id") ?? "");
   const [typeId, setTypeId] = useState(() => initialFilters.get("tipo_id") ?? "");
   const [createdById, setCreatedById] = useState(() => initialFilters.get("created_by_id") ?? "");
+  const [documentFilter, setDocumentFilter] = useState(() => initialFilters.get("con_documento") ?? "");
   const [search, setSearch] = useState(() => initialFilters.get("busqueda") ?? "");
   const [offset, setOffset] = useState(0);
   const [viewing, setViewing] = useState<Transaction>();
@@ -43,7 +77,7 @@ export function Transactions() {
   const users = useQuery({ queryKey: ["users"], queryFn: api.users, enabled: user.data?.rol === "admin" });
   const catalogues = useCatalogues();
   const data = useQuery({
-    queryKey: ["transactions", status, account, from, until, activityId, conceptId, typeId, createdById, search, offset],
+    queryKey: ["transactions", status, account, from, until, activityId, conceptId, typeId, createdById, documentFilter, search, offset],
     queryFn: () =>
       api.transactions(
         new URLSearchParams({
@@ -57,6 +91,7 @@ export function Transactions() {
           ...(conceptId ? { concepto_id: conceptId } : {}),
           ...(typeId ? { tipo_id: typeId } : {}),
           ...(createdById ? { created_by_id: createdById } : {}),
+          ...(documentFilter ? { con_documento: documentFilter } : {}),
           ...(search.trim() ? { busqueda: search.trim() } : {}),
         }),
       ),
@@ -100,7 +135,7 @@ export function Transactions() {
           Movimientos registrados y sus estados operativos.
         </Text>
       </Box>
-      <HStack align="end" flexWrap="wrap" spacing="3">
+      <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing="3" alignItems="end">
           <Field label="Estado">
             <Select
               value={status}
@@ -115,6 +150,19 @@ export function Transactions() {
               <option value="PROYECTADO">Proyectado</option>
             </Select>
           </Field>
+           <Field label="Registrado por">
+             <Select
+               value={createdById}
+               onChange={(event) => {
+                 setCreatedById(event.target.value);
+                 setOffset(0);
+               }}
+             >
+               <option value="">Todos los usuarios</option>
+               {user.data && <option value={user.data.id}>Mis transacciones</option>}
+               {users.data?.filter((item) => item.id !== user.data?.id).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+             </Select>
+           </Field>
            <Field label="Cuenta bancaria">
             <Select
               value={account}
@@ -141,43 +189,31 @@ export function Transactions() {
                }}
              />
            </Field>
-          <Field label="Período">
-            <HStack spacing="2">
-              <Input
-                size="sm"
-                type="date"
-                value={from}
-                onChange={(event) => {
-                  setFrom(event.target.value);
-                  setOffset(0);
-                }}
-              />
-              <Text color="gray.500">a</Text>
-              <Input
-                size="sm"
-                type="date"
-                value={until}
-                onChange={(event) => {
-                  setUntil(event.target.value);
-                  setOffset(0);
-                }}
-              />
-            </HStack>
-          </Field>
-          <Field label="Registrado por">
-            <Select
-              value={createdById}
-              onChange={(event) => {
-                setCreatedById(event.target.value);
-                setOffset(0);
-              }}
-            >
-              <option value="">Todos los usuarios</option>
-              {user.data && <option value={user.data.id}>Mis transacciones</option>}
-              {users.data?.filter((item) => item.id !== user.data?.id).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
-            </Select>
-          </Field>
-      </HStack>
+           <Field label="Período">
+             <DateRangeFilter
+               from={from}
+               until={until}
+               onChange={(range) => {
+                 setFrom(range?.from ? toDateValue(range.from) : "");
+                 setUntil(range?.to ? toDateValue(range.to) : "");
+                 setOffset(0);
+               }}
+             />
+           </Field>
+           <Field label="Documento">
+             <Select
+               value={documentFilter}
+               onChange={(event) => {
+                 setDocumentFilter(event.target.value);
+                 setOffset(0);
+               }}
+             >
+               <option value="">Con y sin documento</option>
+               <option value="true">Con documento</option>
+               <option value="false">Sin documento</option>
+             </Select>
+           </Field>
+      </SimpleGrid>
       {hasBreakdownFilters && (
         <HStack flexWrap="wrap" spacing="2" bg="white" borderWidth="1px" borderRadius="md" p="3">
           <Text fontSize="sm" fontWeight="medium">Filtros del desglose</Text>

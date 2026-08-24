@@ -3029,6 +3029,22 @@
             }
           },
           {
+            "name": "con_documento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Con Documento"
+            }
+          },
+          {
             "name": "busqueda",
             "in": "query",
             "required": false,

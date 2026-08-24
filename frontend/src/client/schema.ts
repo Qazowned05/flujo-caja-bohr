@@ -3423,6 +3423,7 @@ export interface operations {
                 vendedor_id?: string | null;
                 sucursal_id?: string | null;
                 origen?: components["schemas"]["OrigenTransaccion"] | null;
+                con_documento?: boolean | null;
                 busqueda?: string | null;
                 include_inactive?: boolean;
                 offset?: number;
