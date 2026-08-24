@@ -1,7 +1,7 @@
 import io
 import re
 import uuid
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Annotated, Any
 from zipfile import BadZipFile
@@ -155,7 +155,7 @@ def parse_date(value: str) -> date | None:
         "%Y.%m.%d",
     ):
         try:
-            return date.strptime(cleaned, fmt)
+            return datetime.strptime(cleaned, fmt).date()
         except ValueError:
             continue
     return None
