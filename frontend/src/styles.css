@@ -1,0 +1,157 @@
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: #f6f8fa;
+}
+body {
+  color: #17212b;
+  overflow-x: hidden;
+}
+.metric-card {
+  border-top: 3px solid #1d7a64;
+}
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.matrix-wrap {
+  max-width: 100%;
+}
+
+.matrix-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.matrix-table thead th {
+  background: #f7fafc;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.matrix-label-cell {
+  background: #fff;
+  box-shadow: 1px 0 0 #e2e8f0;
+  left: 0;
+  position: sticky;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.matrix-table thead .matrix-label-cell {
+  background: #f7fafc;
+  z-index: 5;
+}
+
+.matrix-total-cell {
+  background: #fff;
+  box-shadow: -1px 0 0 #e2e8f0;
+  font-weight: 600;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+
+.matrix-table thead .matrix-total-cell {
+  background: #f7fafc;
+  z-index: 5;
+}
+
+.matrix-activity-row > td {
+  background: #e2e8f0;
+}
+
+.matrix-activity-row > .matrix-label-cell,
+.matrix-activity-row > .matrix-total-cell {
+  background: #e2e8f0;
+}
+
+.matrix-initial-balance-row > td {
+  background: #e6f4ef;
+}
+
+.matrix-initial-balance-row > .matrix-label-cell,
+.matrix-initial-balance-row > .matrix-total-cell {
+  background: #e6f4ef;
+}
+
+.matrix-final-balance-row > td {
+  background: #eaf2ff;
+}
+
+.matrix-final-balance-row > .matrix-label-cell,
+.matrix-final-balance-row > .matrix-total-cell {
+  background: #eaf2ff;
+}
+
+.matrix-daily-movements-row > td {
+  background: #fff7e6;
+}
+
+.matrix-daily-movements-row > .matrix-label-cell,
+.matrix-daily-movements-row > .matrix-total-cell {
+  background: #fff7e6;
+}
+
+.matrix-gross-operating-row > td {
+  background: #4a5568;
+  color: #fff;
+}
+
+.matrix-gross-operating-row > .matrix-label-cell,
+.matrix-gross-operating-row > .matrix-total-cell {
+  background: #4a5568;
+  color: #fff;
+}
+
+.matrix-net-operating-row > td {
+  background: #4a5568;
+  color: #fff;
+}
+
+.matrix-net-operating-row > .matrix-label-cell,
+.matrix-net-operating-row > .matrix-total-cell {
+  background: #4a5568;
+  color: #fff;
+}
+
+.matrix-concept-row > td {
+  background: #f7fafc;
+}
+
+.matrix-concept-row > .matrix-label-cell,
+.matrix-concept-row > .matrix-total-cell {
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.matrix-concept-row > .matrix-label-cell {
+  white-space: nowrap;
+}
+
+.matrix-type-row > .matrix-label-cell,
+.matrix-type-row > .matrix-total-cell {
+  background: #fff;
+}
+
+.matrix-type-row > td {
+  font-weight: 400;
+}
+
+.matrix-type-row > .matrix-label-cell {
+  color: #718096;
+}
+
+.matrix-daily-cell {
+  cursor: pointer;
+}
+
+.matrix-daily-cell:hover {
+  background: #edf7f4;
+}

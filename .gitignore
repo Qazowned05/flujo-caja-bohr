@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+!frontend/.env.production
+
+backend/venv/
+backend/.venv/
+backend/*.egg-info/
+frontend/node_modules/
+frontend/dist/
+frontend/.firebase/
+frontend/y/
