@@ -273,6 +273,45 @@ def test_desglose_converts_groups_and_filters_projections(client_and_session):
     assert Decimal(projected_groups["Ventas"]["total"]) == Decimal("60.00")
 
 
+def test_flujo_caja_filters_by_activity(client_and_session):
+    client, session, user = client_and_session
+    _, account = make_account(session, "Banco PEN", "PEN")
+    first_activity = Actividad(nombre="Ventas")
+    second_activity = Actividad(nombre="Compras")
+    session.add_all([first_activity, second_activity])
+    session.flush()
+    concept = Concepto(actividad_id=first_activity.id, nombre="Cobros")
+    session.add(concept)
+    session.flush()
+    kind = Tipo(concepto_id=concept.id, nombre="Contado")
+    session.add(kind)
+    session.flush()
+    make_transaction(
+        session,
+        user,
+        account,
+        "100",
+        actividad_id=first_activity.id,
+        concepto_id=concept.id,
+        tipo_id=kind.id,
+    )
+    make_transaction(session, user, account, "-25", actividad_id=second_activity.id)
+
+    response = client.get(
+        "/api/v1/flujo-caja/resumen",
+        params={"actividad_id": str(first_activity.id)},
+    )
+    breakdown = client.get(
+        "/api/v1/flujo-caja/desglose-tipificaciones",
+        params={"actividad_id": str(first_activity.id)},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["por_divisa"][0]["neto_total"] == "100.00"
+    assert breakdown.status_code == 200
+    assert [item["nombre"] for item in breakdown.json()["actividades"]] == ["Ventas"]
+
+
 def test_desglose_uses_inverse_rate_and_validates_range(client_and_session):
     client, session, user = client_and_session
     _, pen_account = make_account(session, "Banco PEN", "PEN")

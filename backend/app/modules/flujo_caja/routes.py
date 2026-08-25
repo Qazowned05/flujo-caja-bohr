@@ -75,6 +75,7 @@ def get_resumen(
     fecha_hasta: date | None = None,
     banco_id: uuid.UUID | None = None,
     cuenta_bancaria_id: uuid.UUID | None = None,
+    actividad_id: uuid.UUID | None = None,
     moneda: str | None = Query(default=None, pattern=r"^[A-Za-z]{3}$"),
     incluir_proyecciones: bool = True,
     _: Annotated[User, Depends(get_current_user)] = None,
@@ -95,6 +96,8 @@ def get_resumen(
         filters.append(CuentaBancaria.banco_id == banco_id)
     if cuenta_bancaria_id:
         filters.append(Transaccion.cuenta_bancaria_id == cuenta_bancaria_id)
+    if actividad_id:
+        filters.append(Transaccion.actividad_id == actividad_id)
     if moneda:
         filters.append(Transaccion.moneda == moneda.upper())
     if not incluir_proyecciones:
@@ -136,6 +139,8 @@ def get_resumen(
         balance_filters.append(CuentaBancaria.banco_id == banco_id)
     if cuenta_bancaria_id:
         balance_filters.append(Transaccion.cuenta_bancaria_id == cuenta_bancaria_id)
+    if actividad_id:
+        balance_filters.append(Transaccion.actividad_id == actividad_id)
     if moneda:
         balance_filters.append(Transaccion.moneda == moneda.upper())
     balance_rows = db.execute(
@@ -222,6 +227,7 @@ def get_desglose_tipificaciones(
     fecha_desde: date | None = None,
     fecha_hasta: date | None = None,
     cuenta_bancaria_id: uuid.UUID | None = None,
+    actividad_id: uuid.UUID | None = None,
     moneda_visualizacion: str = Query(default="PEN", pattern=r"^[A-Za-z]{3}$"),
     incluir_proyecciones: bool = True,
     _: Annotated[User, Depends(get_current_user)] = None,
@@ -244,6 +250,8 @@ def get_desglose_tipificaciones(
     ]
     if cuenta_bancaria_id:
         filters.append(Transaccion.cuenta_bancaria_id == cuenta_bancaria_id)
+    if actividad_id:
+        filters.append(Transaccion.actividad_id == actividad_id)
     if not incluir_proyecciones:
         filters.append(
             ~(

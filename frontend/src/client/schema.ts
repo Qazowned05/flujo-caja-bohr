@@ -3559,6 +3559,7 @@ export interface operations {
                 fecha_hasta?: string | null;
                 banco_id?: string | null;
                 cuenta_bancaria_id?: string | null;
+                actividad_id?: string | null;
                 moneda?: string | null;
                 incluir_proyecciones?: boolean;
             };
@@ -3594,6 +3595,7 @@ export interface operations {
                 fecha_desde?: string | null;
                 fecha_hasta?: string | null;
                 cuenta_bancaria_id?: string | null;
+                actividad_id?: string | null;
                 moneda_visualizacion?: string;
                 incluir_proyecciones?: boolean;
             };

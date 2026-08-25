@@ -3352,6 +3352,23 @@
             }
           },
           {
+            "name": "actividad_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actividad Id"
+            }
+          },
+          {
             "name": "moneda",
             "in": "query",
             "required": false,
@@ -3465,6 +3482,23 @@
                 }
               ],
               "title": "Cuenta Bancaria Id"
+            }
+          },
+          {
+            "name": "actividad_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Actividad Id"
             }
           },
           {
