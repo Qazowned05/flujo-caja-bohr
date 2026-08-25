@@ -8,11 +8,13 @@ import {
   AlertIcon,
   Badge,
   Box,
+  Button,
   Card,
   CardBody,
   Checkbox,
   Flex,
   Heading,
+  HStack,
   Popover,
   PopoverBody,
   PopoverContent,
@@ -58,14 +60,36 @@ function DateRangeFilter({
 }) {
   const selected = from ? { from: toDate(from), to: toDate(until) } : undefined;
   const label = from ? `${from}${until && until !== from ? ` a ${until}` : ""}` : "Seleccionar rango";
+  const [draft, setDraft] = useState<DateRange | undefined>(selected);
+  const [isOpen, setIsOpen] = useState(false);
+  const open = () => {
+    setDraft(selected);
+    setIsOpen(true);
+  };
   return (
-    <Popover placement="bottom-start">
+    <Popover placement="bottom-start" isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <PopoverTrigger>
-        <Box as="button" w="full" borderWidth="1px" borderRadius="md" px="3" py="2" textAlign="left">
+        <Box as="button" w="full" borderWidth="1px" borderRadius="md" px="3" py="2" textAlign="left" onClick={open}>
           {label}
         </Box>
       </PopoverTrigger>
-      <PopoverContent w="auto"><PopoverBody p="2"><DayPicker mode="range" selected={selected} onSelect={onChange} /></PopoverBody></PopoverContent>
+      <PopoverContent w="auto">
+        <PopoverBody p="2">
+          <DayPicker mode="range" selected={draft} onSelect={setDraft} />
+          <HStack justify="flex-end" mt="2">
+            <Button
+              size="sm"
+              colorScheme="brand"
+              onClick={() => {
+                onChange(draft);
+                setIsOpen(false);
+              }}
+            >
+              Aceptar
+            </Button>
+          </HStack>
+        </PopoverBody>
+      </PopoverContent>
     </Popover>
   );
 }
