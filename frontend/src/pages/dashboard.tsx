@@ -127,17 +127,6 @@ export function Dashboard() {
           </CardBody></Card>;
         })}
       </SimpleGrid>}
-      <Card>
-        <CardBody p="0">
-          <Box p="5" borderBottom="1px solid" borderColor="gray.100">
-            <Heading size="md">Matriz de tipificaciones</Heading>
-            <Text color="gray.500" fontSize="sm" mt="1">Actividad / Concepto / Tipo por día en {currency}.</Text>
-          </Box>
-          {breakdown.isLoading && <Loading />}
-          {breakdown.isError && <Box p="5"><ErrorBox error={breakdown.error} /></Box>}
-          {breakdown.data && <TipificationMatrix data={breakdown.data} currency={currency} account={account} />}
-        </CardBody>
-      </Card>
       <SimpleGrid columns={{ base: 1, md: 2, xl: 5 }} spacing="3" alignItems="end" bg="white" borderWidth="1px" borderRadius="md" p="3">
         <Field label="Período">
           <DateRangeFilter
@@ -170,6 +159,17 @@ export function Dashboard() {
           Incluir proyecciones
         </Checkbox>
       </SimpleGrid>
+      <Card>
+        <CardBody p="0">
+          <Box p="5" borderBottom="1px solid" borderColor="gray.100">
+            <Heading size="md">Matriz de tipificaciones</Heading>
+            <Text color="gray.500" fontSize="sm" mt="1">Actividad / Concepto / Tipo por día en {currency}.</Text>
+          </Box>
+          {breakdown.isLoading && <Loading />}
+          {breakdown.isError && <Box p="5"><ErrorBox error={breakdown.error} /></Box>}
+          {breakdown.data && <TipificationMatrix data={breakdown.data} currency={currency} account={account} />}
+        </CardBody>
+      </Card>
       {!projected && <Alert status="info"><AlertIcon /><AlertDescription>Proyecciones excluidas del resumen y del desglose.</AlertDescription></Alert>}
     </Stack>
   );
