@@ -194,7 +194,7 @@ export function ManualMovement() {
                  </Field>
                 )}
                 {kind === "multiple" && (
-                  <Field label="Números de operación" required>
+                  <Field label="Números de operación">
                     <Box borderWidth="1px" borderRadius="md" p="2">
                       <HStack spacing="2" flexWrap="wrap">
                         {operations.map((operation) => <Tag key={operation} colorScheme="brand"><TagLabel>{operation}</TagLabel><TagCloseButton onClick={() => setOperations((current) => current.filter((item) => item !== operation))} /></Tag>)}
