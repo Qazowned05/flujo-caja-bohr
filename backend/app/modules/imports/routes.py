@@ -19,7 +19,12 @@ from app.modules.imports.schemas import ImportBatchRead, ImportResponse
 from app.modules.shared.audit import log_audit
 from app.modules.shared.models import AuditAction
 from app.modules.sucursales.models import Sucursal
-from app.modules.transacciones.models import EstadoTransaccion, OrigenTransaccion, Transaccion
+from app.modules.transacciones.models import (
+    EstadoTransaccion,
+    OrigenTransaccion,
+    Transaccion,
+    TransaccionOperacion,
+)
 from app.modules.usuarios.deps import get_current_user
 from app.modules.usuarios.models import User, UserRole
 from app.modules.vendedores.models import Vendedor
@@ -132,6 +137,23 @@ def parse_csv(content: bytes, headers: list[str], is_projection: bool) -> list[d
         if not is_projection and not values["n_operacion"]:
             errors.append({"fila": row_number, "mensaje": "n_operacion es obligatorio."})
             continue
+        if not is_projection and "," in values["n_operacion"] and len(
+            operation_numbers(values["n_operacion"])
+        ) < 2:
+            errors.append(
+                {
+                    "fila": row_number,
+                    "mensaje": "n_operacion multiple requiere al menos dos numeros.",
+                }
+            )
+            continue
+        if not is_projection and len(operation_numbers(values["n_operacion"])) != len(
+            set(operation_numbers(values["n_operacion"]))
+        ):
+            errors.append(
+                {"fila": row_number, "mensaje": "n_operacion no puede contener numeros repetidos."}
+            )
+            continue
         if is_projection and not all(
             values[field] for field in ("actividad", "concepto", "tipo")
         ):
@@ -158,6 +180,7 @@ def parse_csv(content: bytes, headers: list[str], is_projection: bool) -> list[d
                 "fecha": parsed_date,
                 "descripcion": values["descripcion"],
                 "n_operacion": values.get("n_operacion") or None,
+                "operaciones": operation_numbers(values.get("n_operacion") or ""),
                 "monto": amount,
                 "documento": values.get("documento") or None,
                 "sucursal": values.get("sucursal") or None,
@@ -184,6 +207,10 @@ def _active_by_name(db: Session, model: Any, name: str) -> Any | None:
 
 def is_itf_movement(description: str) -> bool:
     return "itf" in description.casefold()
+
+
+def operation_numbers(value: str) -> list[str]:
+    return [number.strip() for number in value.split(",") if number.strip()]
 
 
 @router.post("/csv", response_model=ImportResponse)
@@ -218,7 +245,10 @@ def import_csv(
         )
 
     normal_operations = [
-        row["n_operacion"] for row in rows if not is_itf_movement(row["descripcion"])
+        operation
+        for row in rows
+        if not is_itf_movement(row["descripcion"])
+        for operation in row["operaciones"]
     ]
     existing = (
         set(
@@ -233,21 +263,32 @@ def import_csv(
         if not is_projection
         else set()
     )
+    if not is_projection:
+        existing.update(
+            db.scalars(
+                select(TransaccionOperacion.numero)
+                .join(Transaccion)
+                .where(
+                    Transaccion.cuenta_bancaria_id == cuenta_bancaria_id,
+                    TransaccionOperacion.numero.in_(normal_operations),
+                )
+            )
+        )
     duplicates: list[dict[str, object]] = []
     new_rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     for row in rows:
-        operation = str(row["n_operacion"])
+        operations = row["operaciones"]
         if is_projection or is_itf_movement(row["descripcion"]):
             new_rows.append(row)
-        elif operation in existing:
+        elif duplicate := next((item for item in operations if item in existing), None):
             duplicates.append(
-                {"fila": row["fila"], "n_operacion": operation, "motivo": "base_de_datos"}
+                {"fila": row["fila"], "n_operacion": duplicate, "motivo": "base_de_datos"}
             )
-        elif operation in seen:
-            duplicates.append({"fila": row["fila"], "n_operacion": operation, "motivo": "archivo"})
+        elif duplicate := next((item for item in operations if item in seen), None):
+            duplicates.append({"fila": row["fila"], "n_operacion": duplicate, "motivo": "archivo"})
         else:
-            seen.add(operation)
+            seen.update(operations)
             new_rows.append(row)
 
     batch = ImportBatch(
@@ -340,10 +381,11 @@ def import_csv(
                 vendedor_id = vendedor.id
 
             documento = (row["documento"] or "")[:255] or None
+            is_multiple = not is_projection and len(row["operaciones"]) > 1
             transaction = Transaccion(
                 fecha=row["fecha"],
                 descripcion=row["descripcion"],
-                n_operacion=None if is_projection else row["n_operacion"],
+                n_operacion=None if is_projection or is_multiple else row["n_operacion"],
                 is_itf=not is_projection and is_itf_movement(row["descripcion"]),
                 monto=row["monto"],
                 moneda=account.moneda,
@@ -358,6 +400,8 @@ def import_csv(
                 origen=(
                     OrigenTransaccion.PROYECCION
                     if is_projection
+                    else OrigenTransaccion.MULTIPLE
+                    if is_multiple
                     else OrigenTransaccion.IMPORTADO
                 ),
                 estado=EstadoTransaccion.PROYECTADO if is_projection else next_estado,
@@ -365,6 +409,14 @@ def import_csv(
                 import_batch_id=batch.id,
                 created_by_id=current_user.id,
                 updated_by_id=current_user.id,
+                operaciones=(
+                    [
+                        TransaccionOperacion(numero=number, orden=index)
+                        for index, number in enumerate(row["operaciones"])
+                    ]
+                    if is_multiple
+                    else []
+                ),
             )
             db.add(transaction)
             db.flush()
@@ -374,7 +426,11 @@ def import_csv(
                 table=Transaccion.__tablename__,
                 record_id=transaction.id,
                 action=AuditAction.CREATE,
-                changes={"n_operacion": transaction.n_operacion, "monto": transaction.monto},
+                changes={
+                    "n_operacion": transaction.n_operacion,
+                    "operaciones": transaction.numeros_operacion,
+                    "monto": transaction.monto,
+                },
             )
         db.commit()
     except IntegrityError as exc:

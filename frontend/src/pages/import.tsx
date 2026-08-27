@@ -21,7 +21,8 @@ export function ImportPage() {
         <Heading size="lg">Importar movimientos</Heading>
           <Text color="gray.500">
            Carga un CSV y selecciona la cuenta bancaria destino. Las proyecciones
-           requieren actividad, concepto y tipo en cada fila.
+            requieren actividad, concepto y tipo en cada fila. Para un movimiento múltiple,
+            separa los números de operación con comas en la misma celda.
         </Text>
       </Box>
       <Card maxW="720px">

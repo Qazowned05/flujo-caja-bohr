@@ -12,7 +12,7 @@ from app.modules.categorias.models import Actividad, Concepto, Tipo
 from app.modules.cuentas_bancos.models import Banco, CuentaBancaria
 from app.modules.imports.models import ImportBatch
 from app.modules.shared.models import AuditLog
-from app.modules.transacciones.models import Transaccion
+from app.modules.transacciones.models import OrigenTransaccion, Transaccion
 from app.modules.usuarios.deps import get_current_user
 from app.modules.usuarios.models import User, UserRole
 
@@ -100,6 +100,23 @@ def test_imports_itf_rows_with_repeated_operation_are_not_deduplicated(client_an
     transactions = list(session.scalars(select(Transaccion).order_by(Transaccion.fecha)))
     assert [transaction.n_operacion for transaction in transactions] == ["0000", "0000"]
     assert all(transaction.is_itf for transaction in transactions)
+
+
+def test_imports_comma_separated_operations_as_multiple_transaction(client_and_session):
+    client, session, _, account = client_and_session
+    csv = (
+        "fecha;descripcion;n_operacion;monto;documento;sucursal;vendedor;observaciones;actividad;concepto;tipo\n"
+        "2026-08-01;Cobranza agrupada;OP-37, OP-25, OP-08;70.00;DOC-1;;;;;;\n"
+    )
+
+    response = upload(client, account.id, csv)
+
+    assert response.status_code == 200
+    transaction = session.scalar(select(Transaccion))
+    assert transaction is not None
+    assert transaction.origen == OrigenTransaccion.MULTIPLE
+    assert transaction.n_operacion is None
+    assert transaction.numeros_operacion == ["OP-37", "OP-25", "OP-08"]
 
 
 def test_imports_projections_with_required_tipifications(client_and_session):
