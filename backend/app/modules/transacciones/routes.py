@@ -13,11 +13,18 @@ from app.modules.cuentas_bancos.models import CuentaBancaria
 from app.modules.shared.audit import log_audit
 from app.modules.shared.models import AuditAction
 from app.modules.sucursales.models import Sucursal
-from app.modules.transacciones.models import EstadoTransaccion, OrigenTransaccion, Transaccion
+from app.modules.transacciones.models import (
+    EstadoTransaccion,
+    OrigenTransaccion,
+    Transaccion,
+    TransaccionOperacion,
+)
 from app.modules.transacciones.schemas import (
     TransaccionListRead,
     TransaccionManualCreate,
     TransaccionMaterializar,
+    TransaccionMultipleCreate,
+    TransaccionMultipleUpdate,
     TransaccionProyeccionCreate,
     TransaccionRead,
     TransaccionUpdate,
@@ -77,6 +84,34 @@ def effective_categories(
     }
 
 
+def validate_operation_numbers(
+    db: Session, account_id: uuid.UUID, numbers: list[str], transaction_id: uuid.UUID | None = None
+) -> None:
+    single_statement = select(Transaccion.n_operacion).where(
+        Transaccion.cuenta_bancaria_id == account_id,
+        Transaccion.n_operacion.in_(numbers),
+        Transaccion.is_itf.is_(False),
+    )
+    multiple_statement = (
+        select(TransaccionOperacion.numero)
+        .join(Transaccion)
+        .where(
+            Transaccion.cuenta_bancaria_id == account_id,
+            TransaccionOperacion.numero.in_(numbers),
+        )
+    )
+    if transaction_id:
+        single_statement = single_statement.where(Transaccion.id != transaction_id)
+        multiple_statement = multiple_statement.where(Transaccion.id != transaction_id)
+    duplicate = db.scalar(single_statement) or db.scalar(multiple_statement)
+    if duplicate:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ya existe una transaccion con el numero de operacion {duplicate} "
+            "en la cuenta.",
+        )
+
+
 @router.post("/manual", response_model=TransaccionRead, status_code=status.HTTP_201_CREATED)
 def create_manual(
     data: TransaccionManualCreate,
@@ -132,6 +167,57 @@ def create_manual(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ya existe una transaccion con ese numero de operacion en la cuenta.",
         ) from exc
+    db.refresh(transaction)
+    return transaction
+
+
+@router.post("/multiple", response_model=TransaccionRead, status_code=status.HTTP_201_CREATED)
+def create_multiple(
+    data: TransaccionMultipleCreate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Transaccion:
+    values = data.model_dump()
+    operations = values.pop("operaciones")
+    account = require_active(db, CuentaBancaria, values["cuenta_bancaria_id"], "Cuenta bancaria")
+    validate_operation_numbers(db, account.id, operations)
+    validate_references(db, values)
+    has_categories = validate_categories(
+        db, {field: values[field] for field in ("actividad_id", "concepto_id", "tipo_id")}
+    )
+    transaction = Transaccion(
+        **values,
+        n_operacion=None,
+        moneda=account.moneda,
+        origen=OrigenTransaccion.MULTIPLE,
+        estado=(
+            EstadoTransaccion.TIPIFICADO
+            if has_categories
+            else EstadoTransaccion.PENDIENTE_TIPIFICAR
+        ),
+        materializado=False,
+        created_by_id=current_user.id,
+        updated_by_id=current_user.id,
+        operaciones=[
+            TransaccionOperacion(numero=number, orden=index)
+            for index, number in enumerate(operations)
+        ],
+    )
+    db.add(transaction)
+    db.flush()
+    log_audit(
+        db,
+        user=current_user,
+        table=Transaccion.__tablename__,
+        record_id=transaction.id,
+        action=AuditAction.CREATE,
+        changes={
+            "origen": transaction.origen,
+            "operaciones": operations,
+            "estado": transaction.estado,
+        },
+    )
+    db.commit()
     db.refresh(transaction)
     return transaction
 
@@ -320,12 +406,21 @@ def list_transacciones(
     if busqueda and busqueda.strip():
         term = f"%{busqueda.strip()}%"
         filters.append(
-            or_(Transaccion.n_operacion.ilike(term), Transaccion.descripcion.ilike(term))
+            or_(
+                Transaccion.n_operacion.ilike(term),
+                Transaccion.descripcion.ilike(term),
+                Transaccion.id.in_(
+                    select(TransaccionOperacion.transaccion_id).where(
+                        TransaccionOperacion.numero.ilike(term)
+                    )
+                ),
+            )
         )
 
     statement = select(Transaccion).options(
         selectinload(Transaccion.created_by),
         selectinload(Transaccion.updated_by),
+        selectinload(Transaccion.operaciones),
     )
     count_statement = select(func.count()).select_from(Transaccion)
     if banco_id:
@@ -352,13 +447,60 @@ def get_transaccion(
 ) -> Transaccion:
     transaction = db.scalar(
         select(Transaccion)
-        .options(selectinload(Transaccion.created_by), selectinload(Transaccion.updated_by))
+        .options(
+            selectinload(Transaccion.created_by),
+            selectinload(Transaccion.updated_by),
+            selectinload(Transaccion.operaciones),
+        )
         .where(Transaccion.id == transaccion_id)
     )
     if not transaction:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Transaccion no encontrada."
         )
+    return transaction
+
+
+@router.patch("/{transaccion_id}/operaciones", response_model=TransaccionRead)
+def update_multiple_operations(
+    transaccion_id: uuid.UUID,
+    data: TransaccionMultipleUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Transaccion:
+    transaction = db.scalar(
+        select(Transaccion)
+        .options(selectinload(Transaccion.operaciones))
+        .where(Transaccion.id == transaccion_id)
+    )
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Transaccion no encontrada."
+        )
+    if not transaction.is_active or transaction.origen != OrigenTransaccion.MULTIPLE:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Solo se pueden editar operaciones de movimientos multiples activos.",
+        )
+    operations = data.operaciones
+    validate_operation_numbers(db, transaction.cuenta_bancaria_id, operations, transaction.id)
+    previous = transaction.numeros_operacion
+    transaction.operaciones.clear()
+    db.flush()
+    transaction.operaciones.extend(
+        TransaccionOperacion(numero=number, orden=index) for index, number in enumerate(operations)
+    )
+    transaction.updated_by_id = current_user.id
+    log_audit(
+        db,
+        user=current_user,
+        table=Transaccion.__tablename__,
+        record_id=transaction.id,
+        action=AuditAction.UPDATE,
+        changes={"operaciones": {"old": previous, "new": operations}},
+    )
+    db.commit()
+    db.refresh(transaction)
     return transaction
 
 

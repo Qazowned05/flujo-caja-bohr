@@ -11,7 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, aliased
 
@@ -269,7 +269,10 @@ def export_no_tipificados(
     filters = [
         Transaccion.is_active.is_(True),
         Transaccion.estado == EstadoTransaccion.PENDIENTE_TIPIFICAR,
-        Transaccion.n_operacion.is_not(None),
+        or_(
+            Transaccion.n_operacion.is_not(None),
+            Transaccion.origen == OrigenTransaccion.MULTIPLE,
+        ),
     ]
     if created_by_id:
         filters.append(Transaccion.created_by_id == created_by_id)
@@ -312,7 +315,7 @@ def export_no_tipificados(
             [
                 transaction.fecha.strftime("%d/%m/%Y"),
                 transaction.descripcion,
-                transaction.n_operacion,
+                ", ".join(transaction.numeros_operacion),
                 transaction.monto,
                 transaction.documento or "",
                 sucursal or "",
@@ -452,7 +455,7 @@ def export_auditoria(
             [
                 transaction.fecha.strftime("%d/%m/%Y"),
                 transaction.descripcion,
-                transaction.n_operacion or "",
+                ", ".join(transaction.numeros_operacion),
                 transaction.monto,
                 transaction.moneda,
                 transaction.documento or "",

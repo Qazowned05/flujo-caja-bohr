@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Badge, Box, Button, Card, CardBody, Flex, Heading, HStack, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Select, SimpleGrid, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
+import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Badge, Box, Button, Card, CardBody, Flex, Heading, HStack, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Popover, PopoverBody, PopoverContent, PopoverTrigger, Select, SimpleGrid, Spinner, Stack, Table, Tag, TagCloseButton, TagLabel, Tbody, Td, Text, Th, Thead, Tr, useDisclosure } from "@chakra-ui/react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import "react-day-picker/style.css";
 import { api, type Transaction } from "../client/api";
@@ -251,7 +251,7 @@ export function Transactions() {
                     <Tr key={row.id}>
                       <Td whiteSpace="nowrap">{row.fecha}</Td>
                       <Td>{row.descripcion}</Td>
-                      <Td>{row.n_operacion ?? "-"}</Td>
+                      <Td>{row.numeros_operacion.join(", ") || "-"}</Td>
                       <Td>
                         <Text fontWeight="medium" fontSize="xs">
                           {accountById.get(row.cuenta_bancaria_id)?.alias ?? "Cuenta no disponible"}
@@ -392,7 +392,7 @@ function TransactionDetailModal({
             <DetailField label="ID" value={transaction.id} />
             <DetailField label="Fecha" value={transaction.fecha} />
             <DetailField label="Descripción" value={transaction.descripcion} />
-            <DetailField label="N. operación" value={transaction.n_operacion ?? "-"} />
+            <DetailField label="N. operación" value={transaction.numeros_operacion.join(", ") || "-"} />
             <DetailField label="Monto" value={money(transaction.monto, transaction.moneda)} />
             <DetailField label="Moneda" value={transaction.moneda} />
             <DetailField label="Documento" value={transaction.documento ?? "-"} />
@@ -506,6 +506,8 @@ function TransactionEditModal({
     tipo: transaction.tipo_id ?? "",
   });
   const [projectionId, setProjectionId] = useState("");
+  const [operations, setOperations] = useState(transaction.numeros_operacion);
+  const [operationInput, setOperationInput] = useState("");
   const projections = useQuery({
     queryKey: ["pending-projections", transaction.cuenta_bancaria_id],
     queryFn: () => api.transactions(new URLSearchParams({
@@ -523,8 +525,8 @@ function TransactionEditModal({
     (item) => item.concepto_id === form.concepto,
   );
   const save = useMutation({
-    mutationFn: () =>
-      api.updateTransaction(transaction.id, {
+    mutationFn: async () => {
+      await api.updateTransaction(transaction.id, {
         documento: form.documento || null,
         observaciones: form.observaciones || null,
         sucursal_id: form.sucursal || null,
@@ -533,7 +535,11 @@ function TransactionEditModal({
         concepto_id: form.concepto || null,
         tipo_id: form.tipo || null,
         ...(projectionId ? { proyeccion_id: projectionId } : {}),
-      }),
+      });
+      return transaction.origen === "MULTIPLE"
+        ? api.updateMultipleOperations(transaction.id, operations)
+        : undefined;
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["transactions"] });
       void queryClient.invalidateQueries({ queryKey: ["summary"] });
@@ -550,9 +556,34 @@ function TransactionEditModal({
         <ModalHeader>Editar transacción</ModalHeader>
         <ModalBody>
           <Text fontSize="sm" color="gray.500" mb="4">
-            El número de operación, monto y fecha no se pueden modificar aquí.
+            El monto y la fecha no se pueden modificar aquí. Solo los movimientos múltiples permiten editar sus números de operación.
           </Text>
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing="4">
+            {transaction.origen === "MULTIPLE" && (
+              <Field label="Números de operación" required>
+                <Box borderWidth="1px" borderRadius="md" p="2">
+                  <HStack spacing="2" flexWrap="wrap">
+                    {operations.map((operation) => <Tag key={operation} colorScheme="brand"><TagLabel>{operation}</TagLabel><TagCloseButton onClick={() => setOperations((current) => current.filter((item) => item !== operation))} /></Tag>)}
+                    <Input
+                      variant="unstyled"
+                      minW="140px"
+                      value={operationInput}
+                      placeholder="Agregar operación"
+                      onChange={(event) => setOperationInput(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          const values = operationInput.split(/[\n,;\t]+/).map((item) => item.trim()).filter(Boolean);
+                          setOperations((current) => [...current, ...values.filter((item) => !current.includes(item))]);
+                          setOperationInput("");
+                        }
+                      }}
+                    />
+                  </HStack>
+                </Box>
+                <Text fontSize="xs" color="gray.500" mt="1">Presiona Enter para agregar. Se requieren al menos dos operaciones.</Text>
+              </Field>
+            )}
             <CatalogueSelect
               label="Sucursal"
               value={form.sucursal}
@@ -648,6 +679,7 @@ function TransactionEditModal({
             ml="3"
             colorScheme="brand"
             isLoading={save.isPending}
+            isDisabled={transaction.origen === "MULTIPLE" && operations.length < 2}
             onClick={() => save.mutate()}
           >
             Guardar cambios

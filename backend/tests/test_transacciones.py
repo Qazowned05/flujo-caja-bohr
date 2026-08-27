@@ -153,6 +153,40 @@ def test_list_transacciones_filters_by_document_presence(client_and_session):
     }
 
 
+def test_multiple_transaction_creates_searches_and_updates_operations(client_and_session):
+    client, session, user = client_and_session
+    account = make_account(session)
+    payload = {
+        "fecha": "2026-08-10",
+        "descripcion": "Cobranza agrupada",
+        "monto": "70.00",
+        "cuenta_bancaria_id": str(account.id),
+        "operaciones": ["VOUCHER-37", "VOUCHER-25", "VOUCHER-08"],
+    }
+
+    created = client.post("/api/v1/transacciones/multiple", json=payload)
+
+    assert created.status_code == 201
+    body = created.json()
+    assert body["origen"] == "MULTIPLE"
+    assert body["n_operacion"] is None
+    assert body["numeros_operacion"] == payload["operaciones"]
+    searched = client.get("/api/v1/transacciones", params={"busqueda": "VOUCHER-25"})
+    assert [item["id"] for item in searched.json()["items"]] == [body["id"]]
+
+    updated = client.patch(
+        f"/api/v1/transacciones/{body['id']}/operaciones",
+        json={"operaciones": ["VOUCHER-37", "VOUCHER-25", "VOUCHER-08", "VOUCHER-10"]},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["numeros_operacion"][-1] == "VOUCHER-10"
+    duplicate = client.post(
+        "/api/v1/transacciones/multiple",
+        json={**payload, "operaciones": ["VOUCHER-25", "OTRO"]},
+    )
+    assert duplicate.status_code == 409
+
+
 def test_create_proyeccion_inherits_currency_status_and_audits(client_and_session):
     client, session, _ = client_and_session
     account = make_account(session, moneda="USD")

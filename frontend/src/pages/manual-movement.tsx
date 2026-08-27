@@ -1,14 +1,16 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { Alert, AlertIcon, Box, Button, Card, CardBody, Heading, Input, Select, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Alert, AlertIcon, Box, Button, Card, CardBody, Heading, HStack, Input, Select, SimpleGrid, Stack, Tag, TagCloseButton, TagLabel, Text } from "@chakra-ui/react";
 import { api, type Cuenta, type Sucursal, type Vendedor } from "../client/api";
 import { active, confirmDelete, AccountSelect, CatalogueSelect, ErrorBox, Field, Status } from "../components/common";
 import { useCatalogues } from "../hooks/useCatalogues";
 import { money, today } from "../lib/format";
 export function ManualMovement() {
   const queryClient = useQueryClient();
-  const [kind, setKind] = useState<"real" | "projection">("real");
+  const [kind, setKind] = useState<"real" | "multiple" | "projection">("real");
+  const [operations, setOperations] = useState<string[]>([]);
+  const [operationInput, setOperationInput] = useState("");
   const [projectionId, setProjectionId] = useState("");
   const [materialized, setMaterialized] = useState(false);
   const [form, setForm] = useState({
@@ -62,6 +64,17 @@ export function ManualMovement() {
             cuenta_bancaria_id: form.cuenta,
           });
       }
+      if (kind === "multiple") {
+        return api.createMultiple({
+          ...transactionValues,
+          cuenta_bancaria_id: form.cuenta,
+          documento: form.documento || null,
+          observaciones: form.observaciones || null,
+          sucursal_id: form.sucursal || null,
+          vendedor_id: form.vendedor || null,
+          operaciones: operations,
+        });
+      }
       return api.createProjection({
         ...transactionValues,
         cuenta_bancaria_id: form.cuenta,
@@ -89,6 +102,8 @@ export function ManualMovement() {
         tipo: "",
       });
       setProjectionId("");
+      setOperations([]);
+      setOperationInput("");
     },
   });
   const concepts = active(catalogues.conceptos.data).filter(
@@ -97,6 +112,11 @@ export function ManualMovement() {
   const types = active(catalogues.tipos.data).filter(
     (item) => item.concepto_id === form.concepto,
   );
+  const addOperations = (value: string) => {
+    const values = value.split(/[\n,;\t]+/).map((item) => item.trim()).filter(Boolean);
+    if (values.length) setOperations((current) => [...current, ...values.filter((item) => !current.includes(item))]);
+    setOperationInput("");
+  };
   return (
     <Stack spacing="6">
       <Box>
@@ -117,10 +137,11 @@ export function ManualMovement() {
               <Select
                 value={kind}
                 onChange={(event) =>
-                  setKind(event.target.value as "real" | "projection")
+                  setKind(event.target.value as "real" | "multiple" | "projection")
                 }
               >
                 <option value="real">Movimiento real</option>
+                <option value="multiple">Movimiento múltiple</option>
                 <option value="projection">Proyección</option>
               </Select>
             </Field>
@@ -161,7 +182,7 @@ export function ManualMovement() {
                   }
                 />
               </Field>
-               {kind === "real" && (
+                {kind === "real" && (
                  <Field label="N. operación" required>
                   <Input
                     required
@@ -171,8 +192,38 @@ export function ManualMovement() {
                     }
                   />
                  </Field>
-               )}
-               {kind === "real" && (
+                )}
+                {kind === "multiple" && (
+                  <Field label="Números de operación" required>
+                    <Box borderWidth="1px" borderRadius="md" p="2">
+                      <HStack spacing="2" flexWrap="wrap">
+                        {operations.map((operation) => <Tag key={operation} colorScheme="brand"><TagLabel>{operation}</TagLabel><TagCloseButton onClick={() => setOperations((current) => current.filter((item) => item !== operation))} /></Tag>)}
+                        <Input
+                          variant="unstyled"
+                          minW="140px"
+                          value={operationInput}
+                          placeholder="Escribe o pega una operación"
+                          onChange={(event) => setOperationInput(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              addOperations(operationInput);
+                            }
+                          }}
+                          onPaste={(event) => {
+                            const pasted = event.clipboardData.getData("text");
+                            if (/[\n,;\t]/.test(pasted)) {
+                              event.preventDefault();
+                              addOperations(pasted);
+                            }
+                          }}
+                        />
+                      </HStack>
+                    </Box>
+                    <Text fontSize="xs" color="gray.500" mt="1">Presiona Enter para agregar. Se requieren al menos dos operaciones.</Text>
+                  </Field>
+                )}
+                {kind === "real" && (
                  <Field label="Asociar a proyección">
                    <Select
                      value={projectionId}
@@ -203,7 +254,7 @@ export function ManualMovement() {
                    </Select>
                  </Field>
                )}
-              {kind === "real" && <>
+               {kind !== "projection" && <>
                 <Field label="Documento">
                   <Input
                     value={form.documento}
@@ -273,18 +324,21 @@ export function ManualMovement() {
                 !form.fecha ||
                 !form.descripcion ||
                 !form.monto ||
-                (kind === "real" && !form.operacion.trim()) ||
+                 (kind === "real" && !form.operacion.trim()) ||
+                 (kind === "multiple" && operations.length < 2) ||
                 (kind === "projection" && (!form.actividad || !form.concepto || !form.tipo))
               }
             >
-              {kind === "real"
+               {kind === "real"
                 ? "Guardar movimiento real"
+                : kind === "multiple"
+                  ? "Guardar movimiento múltiple"
                 : "Guardar proyección"}
             </Button>
             {mutation.isSuccess && (
               <Alert status="success" mt="4">
                 <AlertIcon />
-                {kind === "real"
+                 {kind === "real" || kind === "multiple"
                   ? materialized
                     ? "Proyección confirmada como movimiento real."
                     : "Movimiento real creado correctamente."

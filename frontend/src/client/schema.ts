@@ -504,6 +504,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transacciones/multiple": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Multiple */
+        post: operations["create_multiple_api_v1_transacciones_multiple_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transacciones/proyeccion": {
         parameters: {
             query?: never;
@@ -571,6 +588,23 @@ export interface paths {
         head?: never;
         /** Update Transaccion */
         patch: operations["update_transaccion_api_v1_transacciones__transaccion_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/transacciones/{transaccion_id}/operaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Multiple Operations */
+        patch: operations["update_multiple_operations_api_v1_transacciones__transaccion_id__operaciones_patch"];
         trace?: never;
     };
     "/api/v1/transacciones/{transaccion_id}/anular": {
@@ -1093,7 +1127,7 @@ export interface components {
          * OrigenTransaccion
          * @enum {string}
          */
-        OrigenTransaccion: "IMPORTADO" | "PROYECCION" | "MANUAL";
+        OrigenTransaccion: "IMPORTADO" | "PROYECCION" | "MANUAL" | "MULTIPLE";
         /** ReporteCambio */
         ReporteCambio: {
             /** Fila */
@@ -1429,6 +1463,44 @@ export interface components {
             /** Tipo Id */
             tipo_id?: string | null;
         };
+        /** TransaccionMultipleCreate */
+        TransaccionMultipleCreate: {
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Descripcion */
+            descripcion: string;
+            /** Monto */
+            monto: number | string;
+            /**
+             * Cuenta Bancaria Id
+             * Format: uuid
+             */
+            cuenta_bancaria_id: string;
+            /** Documento */
+            documento?: string | null;
+            /** Observaciones */
+            observaciones?: string | null;
+            /** Sucursal Id */
+            sucursal_id?: string | null;
+            /** Vendedor Id */
+            vendedor_id?: string | null;
+            /** Actividad Id */
+            actividad_id?: string | null;
+            /** Concepto Id */
+            concepto_id?: string | null;
+            /** Tipo Id */
+            tipo_id?: string | null;
+            /** Operaciones */
+            operaciones: string[];
+        };
+        /** TransaccionMultipleUpdate */
+        TransaccionMultipleUpdate: {
+            /** Operaciones */
+            operaciones: string[];
+        };
         /** TransaccionProyeccionCreate */
         TransaccionProyeccionCreate: {
             /**
@@ -1476,6 +1548,8 @@ export interface components {
             descripcion: string;
             /** N Operacion */
             n_operacion: string | null;
+            /** Numeros Operacion */
+            numeros_operacion: string[];
             /** Monto */
             monto: string;
             /** Moneda */
@@ -3339,6 +3413,39 @@ export interface operations {
             };
         };
     };
+    create_multiple_api_v1_transacciones_multiple_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransaccionMultipleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransaccionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_proyeccion_api_v1_transacciones_proyeccion_post: {
         parameters: {
             query?: never;
@@ -3498,6 +3605,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["TransaccionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransaccionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_multiple_operations_api_v1_transacciones__transaccion_id__operaciones_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaccion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransaccionMultipleUpdate"];
             };
         };
         responses: {

@@ -2692,6 +2692,52 @@
         ]
       }
     },
+    "/api/v1/transacciones/multiple": {
+      "post": {
+        "tags": [
+          "transacciones"
+        ],
+        "summary": "Create Multiple",
+        "operationId": "create_multiple_api_v1_transacciones_multiple_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransaccionMultipleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransaccionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/transacciones/proyeccion": {
       "post": {
         "tags": [
@@ -3194,6 +3240,64 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TransaccionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransaccionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transacciones/{transaccion_id}/operaciones": {
+      "patch": {
+        "tags": [
+          "transacciones"
+        ],
+        "summary": "Update Multiple Operations",
+        "operationId": "update_multiple_operations_api_v1_transacciones__transaccion_id__operaciones_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaccion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Transaccion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransaccionMultipleUpdate"
               }
             }
           }
@@ -4734,7 +4838,8 @@
         "enum": [
           "IMPORTADO",
           "PROYECCION",
-          "MANUAL"
+          "MANUAL",
+          "MULTIPLE"
         ],
         "title": "OrigenTransaccion"
       },
@@ -5708,6 +5813,158 @@
         "title": "TransaccionMaterializar",
         "description": "Campos ajustables al confirmar una proyeccion."
       },
+      "TransaccionMultipleCreate": {
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha"
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Descripcion"
+          },
+          "monto": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Monto"
+          },
+          "cuenta_bancaria_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Cuenta Bancaria Id"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documento"
+          },
+          "observaciones": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observaciones"
+          },
+          "sucursal_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sucursal Id"
+          },
+          "vendedor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendedor Id"
+          },
+          "actividad_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actividad Id"
+          },
+          "concepto_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concepto Id"
+          },
+          "tipo_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Id"
+          },
+          "operaciones": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 2,
+            "title": "Operaciones"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fecha",
+          "descripcion",
+          "monto",
+          "cuenta_bancaria_id",
+          "operaciones"
+        ],
+        "title": "TransaccionMultipleCreate"
+      },
+      "TransaccionMultipleUpdate": {
+        "properties": {
+          "operaciones": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 2,
+            "title": "Operaciones"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "operaciones"
+        ],
+        "title": "TransaccionMultipleUpdate"
+      },
       "TransaccionProyeccionCreate": {
         "properties": {
           "fecha": {
@@ -5857,6 +6114,13 @@
               }
             ],
             "title": "N Operacion"
+          },
+          "numeros_operacion": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Numeros Operacion"
           },
           "monto": {
             "type": "string",
@@ -6025,6 +6289,7 @@
           "fecha",
           "descripcion",
           "n_operacion",
+          "numeros_operacion",
           "monto",
           "moneda",
           "documento",

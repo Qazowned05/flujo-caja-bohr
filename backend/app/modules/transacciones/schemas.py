@@ -104,6 +104,31 @@ class TransaccionManualCreate(TransaccionProyeccionCreate):
         return value
 
 
+class TransaccionMultipleCreate(TransaccionProyeccionCreate):
+    operaciones: list[str] = Field(min_length=2, max_length=100)
+
+    @field_validator("operaciones")
+    @classmethod
+    def validate_operaciones(cls, value: list[str]) -> list[str]:
+        normalized = [item.strip() for item in value if item.strip()]
+        if len(normalized) < 2:
+            raise ValueError("Un movimiento multiple requiere al menos dos numeros de operacion.")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("Los numeros de operacion no pueden repetirse.")
+        return normalized
+
+
+class TransaccionMultipleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operaciones: list[str] = Field(min_length=2, max_length=100)
+
+    @field_validator("operaciones")
+    @classmethod
+    def validate_operaciones(cls, value: list[str]) -> list[str]:
+        return TransaccionMultipleCreate.validate_operaciones(value)
+
+
 class UsuarioTransaccionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -118,6 +143,7 @@ class TransaccionRead(BaseModel):
     fecha: date
     descripcion: str
     n_operacion: str | None
+    numeros_operacion: list[str]
     monto: Decimal
     moneda: str
     documento: str | None

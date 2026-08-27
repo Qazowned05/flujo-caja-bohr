@@ -4,7 +4,18 @@ from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, Enum, ForeignKey, Index, Numeric, String, Text, text
+from sqlalchemy import (
+    Boolean,
+    Date,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -18,6 +29,7 @@ class OrigenTransaccion(str, enum.Enum):
     IMPORTADO = "IMPORTADO"
     PROYECCION = "PROYECCION"
     MANUAL = "MANUAL"
+    MULTIPLE = "MULTIPLE"
 
 
 class EstadoTransaccion(str, enum.Enum):
@@ -82,3 +94,25 @@ class Transaccion(SoftDeleteMixin, Base):
     updated_by_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
     created_by: Mapped["User"] = relationship(foreign_keys=[created_by_id])
     updated_by: Mapped["User"] = relationship(foreign_keys=[updated_by_id])
+    operaciones: Mapped[list["TransaccionOperacion"]] = relationship(
+        back_populates="transaccion",
+        cascade="all, delete-orphan",
+        order_by="TransaccionOperacion.orden",
+    )
+
+    @property
+    def numeros_operacion(self) -> list[str]:
+        if self.operaciones:
+            return [item.numero for item in self.operaciones]
+        return [self.n_operacion] if self.n_operacion else []
+
+
+class TransaccionOperacion(Base):
+    __tablename__ = "transaccion_operaciones"
+    __table_args__ = (UniqueConstraint("transaccion_id", "numero"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    transaccion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("transacciones.id"), index=True)
+    numero: Mapped[str] = mapped_column(String(255), nullable=False)
+    orden: Mapped[int] = mapped_column(default=0, nullable=False)
+    transaccion: Mapped[Transaccion] = relationship(back_populates="operaciones")

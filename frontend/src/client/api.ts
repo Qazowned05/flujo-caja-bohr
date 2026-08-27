@@ -54,6 +54,7 @@ export type Concepto = Schema["ConceptoRead"];
 export type Tipo = Schema["TipoRead"];
 export type TipoCambio = Schema["TipoCambioRead"];
 export type ManualInput = Schema["TransaccionManualCreate"];
+export type MultipleInput = Schema["TransaccionMultipleCreate"];
 export type ProjectionInput = Schema["TransaccionProyeccionCreate"];
 export type MaterializeInput = Schema["TransaccionMaterializar"];
 export type TransactionUpdate = Schema["TransaccionUpdate"];
@@ -234,6 +235,8 @@ export const api = {
     }),
   createManual: (body: ManualInput) =>
     json("/api/v1/transacciones/manual", "POST", body),
+  createMultiple: (body: MultipleInput) =>
+    json("/api/v1/transacciones/multiple", "POST", body) as Promise<Transaction>,
   createProjection: (body: ProjectionInput) =>
     json(
       "/api/v1/transacciones/proyeccion",
@@ -244,6 +247,8 @@ export const api = {
     json(`/api/v1/transacciones/${id}/materializar`, "PATCH", body) as Promise<Transaction>,
   updateTransaction: (id: string, body: TransactionUpdate) =>
     json(`/api/v1/transacciones/${id}`, "PATCH", body) as Promise<Transaction>,
+  updateMultipleOperations: (id: string, operaciones: string[]) =>
+    json(`/api/v1/transacciones/${id}/operaciones`, "PATCH", { operaciones }) as Promise<Transaction>,
   cancelTransaction: (id: string) =>
     request<Transaction>(`/api/v1/transacciones/${id}/anular`, {
       method: "PATCH",
