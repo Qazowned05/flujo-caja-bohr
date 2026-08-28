@@ -85,6 +85,11 @@ function ImportSummary({
         {result.filas_nuevas} nuevas · {result.filas_duplicadas} duplicadas ·{" "}
         {result.filas_error} con error
       </Text>
+      {result.duplicados.length > 0 && (
+        <Text mt="2" fontSize="sm" color="orange.700">
+          N. operación duplicados: {[...new Set(result.duplicados.map((item) => item.n_operacion))].join(", ")}
+        </Text>
+      )}
       {result.errores.map((error) => (
         <Text
           key={`${error.fila}-${error.mensaje}`}
