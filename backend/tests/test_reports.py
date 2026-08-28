@@ -16,9 +16,11 @@ from app.modules.categorias.models import Actividad, Concepto, Tipo
 from app.modules.cuentas_bancos.models import Banco, CuentaBancaria
 from app.modules.reports.routes import parse_date
 from app.modules.shared.models import AuditAction, AuditLog
+from app.modules.sucursales.models import Sucursal
 from app.modules.transacciones.models import EstadoTransaccion, OrigenTransaccion, Transaccion
 from app.modules.usuarios.deps import get_current_user
 from app.modules.usuarios.models import User, UserRole
+from app.modules.vendedores.models import Vendedor
 
 HEADERS = [
     "fecha",
@@ -146,6 +148,11 @@ def test_export_has_tipification_sheet_and_only_pending(client_and_session):
     session.flush()
     kind = Tipo(concepto_id=concept.id, nombre="Contado")
     session.add(kind)
+    branch = Sucursal(nombre="Lima", codigo="LIM")
+    session.add(branch)
+    session.flush()
+    seller = Vendedor(nombre="Ana", codigo="ANA", sucursal_id=branch.id)
+    session.add(seller)
     typed = Transaccion(
         fecha=date(2026, 8, 2),
         descripcion="Tipificada",
@@ -166,7 +173,7 @@ def test_export_has_tipification_sheet_and_only_pending(client_and_session):
 
     assert response.status_code == 200
     workbook = load_workbook(io.BytesIO(response.content), data_only=True)
-    assert workbook.sheetnames == ["Movimientos", "Tipificaciones"]
+    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores"]
     rows = list(workbook["Movimientos"].values)
     assert list(rows[0]) == HEADERS
     assert len(rows) == 2
@@ -177,6 +184,8 @@ def test_export_has_tipification_sheet_and_only_pending(client_and_session):
         ("actividad", "concepto", "tipo"),
         ("Ventas", "Cobros", "Contado"),
     ]
+    assert list(workbook["Sucursales"].values) == [("sucursal",), ("Lima",)]
+    assert list(workbook["Vendedores"].values) == [("vendedor", "sucursal"), ("Ana", "Lima")]
 
 
 def test_export_filters_pending_by_creator(client_and_session):

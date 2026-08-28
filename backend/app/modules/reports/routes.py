@@ -341,6 +341,23 @@ def export_no_tipificados(
         .order_by(Actividad.nombre, Concepto.nombre, Tipo.nombre)
     ):
         tipifications.append([actividad, concepto, tipo])
+    branches = workbook.create_sheet("Sucursales")
+    branches.append(["sucursal"])
+    for (branch,) in db.execute(
+        select(Sucursal.nombre)
+        .where(Sucursal.is_active.is_(True))
+        .order_by(Sucursal.nombre)
+    ):
+        branches.append([branch])
+    sellers = workbook.create_sheet("Vendedores")
+    sellers.append(["vendedor", "sucursal"])
+    for seller, branch in db.execute(
+        select(Vendedor.nombre, Sucursal.nombre)
+        .outerjoin(Sucursal, Vendedor.sucursal_id == Sucursal.id)
+        .where(Vendedor.is_active.is_(True))
+        .order_by(Vendedor.nombre)
+    ):
+        sellers.append([seller, branch or ""])
     output = io.BytesIO()
     workbook.save(output)
     return Response(
