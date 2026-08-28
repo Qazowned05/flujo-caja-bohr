@@ -1,4 +1,3 @@
-import csv
 import io
 import uuid
 from datetime import date, datetime
@@ -7,6 +6,8 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse, Response
+from openpyxl import Workbook, load_workbook
+from openpyxl.utils.exceptions import InvalidFileException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -47,19 +48,54 @@ HEADERS = [
 PROJECTION_HEADERS = ["fecha", "descripcion", "monto", "actividad", "concepto", "tipo"]
 
 
-@router.get("/plantilla.csv")
-def download_template(tipo_importacion: Literal["REAL", "PROYECCION"] = "REAL") -> Response:
-    output = io.StringIO(newline="")
-    writer = csv.writer(output, delimiter=";")
-    writer.writerow(PROJECTION_HEADERS if tipo_importacion == "PROYECCION" else HEADERS)
+@router.get("/plantilla.xlsx")
+def download_template(
+    tipo_importacion: Literal["REAL", "PROYECCION"] = "REAL",
+    db: Annotated[Session, Depends(get_db)] = None,
+) -> Response:
+    workbook = Workbook()
+    movements = workbook.active
+    movements.title = "Movimientos"
+    movements.append(PROJECTION_HEADERS if tipo_importacion == "PROYECCION" else HEADERS)
+    tipifications = workbook.create_sheet("Tipificaciones")
+    tipifications.append(["actividad", "concepto", "tipo"])
+    for activity, concept, kind in db.execute(
+        select(Actividad.nombre, Concepto.nombre, Tipo.nombre)
+        .join(Concepto, Tipo.concepto_id == Concepto.id)
+        .join(Actividad, Concepto.actividad_id == Actividad.id)
+        .where(
+            Actividad.is_active.is_(True),
+            Concepto.is_active.is_(True),
+            Tipo.is_active.is_(True),
+        )
+        .order_by(Actividad.nombre, Concepto.nombre, Tipo.nombre)
+    ):
+        tipifications.append([activity, concept, kind])
+    branches = workbook.create_sheet("Sucursales")
+    branches.append(["sucursal"])
+    for (branch,) in db.execute(
+        select(Sucursal.nombre).where(Sucursal.is_active.is_(True)).order_by(Sucursal.nombre)
+    ):
+        branches.append([branch])
+    sellers = workbook.create_sheet("Vendedores")
+    sellers.append(["vendedor", "sucursal"])
+    for seller, branch in db.execute(
+        select(Vendedor.nombre, Sucursal.nombre)
+        .outerjoin(Sucursal, Vendedor.sucursal_id == Sucursal.id)
+        .where(Vendedor.is_active.is_(True))
+        .order_by(Vendedor.nombre)
+    ):
+        sellers.append([seller, branch or ""])
+    output = io.BytesIO()
+    workbook.save(output)
     return Response(
-        content=output.getvalue().encode("utf-8-sig"),
-        media_type="text/csv; charset=utf-8",
+        content=output.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={
             "Content-Disposition": (
-                'attachment; filename="plantilla_proyecciones.csv"'
+                'attachment; filename="plantilla_proyecciones.xlsx"'
                 if tipo_importacion == "PROYECCION"
-                else 'attachment; filename="plantilla_importacion.csv"'
+                else 'attachment; filename="plantilla_importacion.xlsx"'
             )
         },
     )
@@ -88,25 +124,28 @@ def _parse_date(value: str) -> date | None:
     return None
 
 
-def parse_csv(content: bytes, headers: list[str], is_projection: bool) -> list[dict[str, Any]]:
+def _cell_text(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.strftime("%d/%m/%Y")
+    if isinstance(value, date):
+        return value.strftime("%d/%m/%Y")
+    return str(value or "").strip()
+
+
+def parse_workbook(content: bytes, headers: list[str], is_projection: bool) -> list[dict[str, Any]]:
     try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError as exc:
-        raise CSVValidationError(
-            [{"fila": 0, "mensaje": "El archivo debe estar codificado en UTF-8."}]
-        ) from exc
-    try:
-        reader: csv.DictReader | None = None
-        for delim in (";", ","):
-            candidate = csv.DictReader(io.StringIO(text), delimiter=delim)
-            if candidate.fieldnames and candidate.fieldnames == headers:
-                reader = candidate
-                break
-        if reader is None:
+        workbook = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
+        if "Movimientos" not in workbook.sheetnames:
+            raise CSVValidationError([{"fila": 1, "mensaje": "Falta la hoja Movimientos."}])
+        sheet = workbook["Movimientos"]
+        rows = list(sheet.iter_rows(values_only=True))
+        if not rows or [_cell_text(value) for value in rows[0]] != headers:
             raise CSVValidationError([{"fila": 1, "mensaje": "Las cabeceras no son validas."}])
-        rows = list(reader)
-    except csv.Error as exc:
-        raise CSVValidationError([{"fila": 0, "mensaje": f"CSV invalido: {exc}"}]) from exc
+        rows = [dict(zip(headers, row)) for row in rows[1:]]
+    except (InvalidFileException, OSError, ValueError) as exc:
+        raise CSVValidationError(
+            [{"fila": 0, "mensaje": "El archivo debe ser un Excel valido."}]
+        ) from exc
 
     if not rows:
         raise CSVValidationError([{"fila": 2, "mensaje": "El archivo no contiene movimientos."}])
@@ -114,12 +153,12 @@ def parse_csv(content: bytes, headers: list[str], is_projection: bool) -> list[d
     errors: list[dict[str, object]] = []
     parsed: list[dict[str, Any]] = []
     for row_number, row in enumerate(rows, start=2):
-        if None in row or all(not (value or "").strip() for value in row.values()):
+        if None in row or all(not _cell_text(value) for value in row.values()):
             errors.append(
                 {"fila": row_number, "mensaje": "No se permiten filas vacias o columnas extra."}
             )
             continue
-        values = {key: (row.get(key) or "").strip() for key in headers}
+        values = {key: _cell_text(row.get(key)) for key in headers}
         parsed_date = _parse_date(values["fecha"])
         if not parsed_date:
             errors.append(
@@ -213,8 +252,8 @@ def operation_numbers(value: str) -> list[str]:
     return [number.strip() for number in value.split(",") if number.strip()]
 
 
-@router.post("/csv", response_model=ImportResponse)
-def import_csv(
+@router.post("/excel", response_model=ImportResponse)
+def import_excel(
     cuenta_bancaria_id: Annotated[uuid.UUID, Form()],
     archivo: Annotated[UploadFile, File()],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -223,13 +262,12 @@ def import_csv(
 ) -> ImportResponse:
     try:
         if archivo.content_type and archivo.content_type not in {
-            "text/csv",
-            "application/csv",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel",
         }:
-            raise CSVValidationError([{"fila": 0, "mensaje": "El archivo debe ser CSV."}])
+            raise CSVValidationError([{"fila": 0, "mensaje": "El archivo debe ser Excel."}])
         is_projection = tipo_importacion == "PROYECCION"
-        rows = parse_csv(
+        rows = parse_workbook(
             archivo.file.read(),
             PROJECTION_HEADERS if is_projection else HEADERS,
             is_projection,

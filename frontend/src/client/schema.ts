@@ -385,7 +385,7 @@ export interface paths {
         patch: operations["update_tipo_cambio_api_v1_divisas_tipos_cambio__tipo_cambio_id__patch"];
         trace?: never;
     };
-    "/api/v1/imports/plantilla.csv": {
+    "/api/v1/imports/plantilla.xlsx": {
         parameters: {
             query?: never;
             header?: never;
@@ -393,7 +393,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download Template */
-        get: operations["download_template_api_v1_imports_plantilla_csv_get"];
+        get: operations["download_template_api_v1_imports_plantilla_xlsx_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -402,7 +402,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/imports/csv": {
+    "/api/v1/imports/excel": {
         parameters: {
             query?: never;
             header?: never;
@@ -411,8 +411,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Import Csv */
-        post: operations["import_csv_api_v1_imports_csv_post"];
+        /** Import Excel */
+        post: operations["import_excel_api_v1_imports_excel_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -772,8 +772,8 @@ export interface components {
              */
             confirmar: boolean;
         };
-        /** Body_import_csv_api_v1_imports_csv_post */
-        Body_import_csv_api_v1_imports_csv_post: {
+        /** Body_import_excel_api_v1_imports_excel_post */
+        Body_import_excel_api_v1_imports_excel_post: {
             /**
              * Cuenta Bancaria Id
              * Format: uuid
@@ -3182,7 +3182,7 @@ export interface operations {
             };
         };
     };
-    download_template_api_v1_imports_plantilla_csv_get: {
+    download_template_api_v1_imports_plantilla_xlsx_get: {
         parameters: {
             query?: {
                 tipo_importacion?: "REAL" | "PROYECCION";
@@ -3213,7 +3213,7 @@ export interface operations {
             };
         };
     };
-    import_csv_api_v1_imports_csv_post: {
+    import_excel_api_v1_imports_excel_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3222,7 +3222,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_import_csv_api_v1_imports_csv_post"];
+                "multipart/form-data": components["schemas"]["Body_import_excel_api_v1_imports_excel_post"];
             };
         };
         responses: {

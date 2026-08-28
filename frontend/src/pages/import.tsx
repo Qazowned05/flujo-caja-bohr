@@ -12,15 +12,15 @@ export function ImportPage() {
   const result = useMutation({
     mutationFn: () =>
       file
-        ? api.importCsv(account, file, type)
-        : Promise.reject(new Error("Selecciona un archivo CSV.")),
+        ? api.importBulk(account, file, type)
+        : Promise.reject(new Error("Selecciona un archivo Excel.")),
   });
   return (
     <Stack spacing="6">
       <Box>
-        <Heading size="lg">Importar movimientos</Heading>
+        <Heading size="lg">Importar masivo</Heading>
           <Text color="gray.500">
-           Carga un CSV y selecciona la cuenta bancaria destino. Las proyecciones
+            Carga un Excel y selecciona la cuenta bancaria destino. Las proyecciones
             requieren actividad, concepto y tipo en cada fila. Para un movimiento múltiple,
             separa los números de operación con comas en la misma celda.
         </Text>
@@ -37,10 +37,10 @@ export function ImportPage() {
                 <option value="PROYECCION">Proyecciones</option>
               </Select>
             </Field>
-            <Field label="Archivo CSV" required>
+            <Field label="Archivo Excel" required>
               <Input
                 type="file"
-                accept=".csv,text/csv"
+                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 p="1"
                 onChange={(event) => setFile(event.target.files?.[0])}
               />
@@ -58,8 +58,8 @@ export function ImportPage() {
                 variant="outline"
                 onClick={() =>
                   void api
-                    .download(`/api/v1/imports/plantilla.csv?tipo_importacion=${type}`)
-                    .then((blob) => download(blob, type === "PROYECCION" ? "plantilla_proyecciones.csv" : "plantilla_importacion.csv"))
+                  .download(`/api/v1/imports/plantilla.xlsx?tipo_importacion=${type}`)
+                  .then((blob) => download(blob, type === "PROYECCION" ? "plantilla_proyecciones.xlsx" : "plantilla_importacion.xlsx"))
                 }
               >
                 Descargar plantilla
@@ -76,7 +76,7 @@ export function ImportPage() {
 function ImportSummary({
   result,
 }: {
-  result: Awaited<ReturnType<typeof api.importCsv>>;
+  result: Awaited<ReturnType<typeof api.importBulk>>;
 }) {
   return (
     <Box bg="green.50" borderRadius="md" p="4">

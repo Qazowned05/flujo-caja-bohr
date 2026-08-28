@@ -2234,13 +2234,13 @@
         }
       }
     },
-    "/api/v1/imports/plantilla.csv": {
+    "/api/v1/imports/plantilla.xlsx": {
       "get": {
         "tags": [
           "imports"
         ],
         "summary": "Download Template",
-        "operationId": "download_template_api_v1_imports_plantilla_csv_get",
+        "operationId": "download_template_api_v1_imports_plantilla_xlsx_get",
         "parameters": [
           {
             "name": "tipo_importacion",
@@ -2279,18 +2279,18 @@
         }
       }
     },
-    "/api/v1/imports/csv": {
+    "/api/v1/imports/excel": {
       "post": {
         "tags": [
           "imports"
         ],
-        "summary": "Import Csv",
-        "operationId": "import_csv_api_v1_imports_csv_post",
+        "summary": "Import Excel",
+        "operationId": "import_excel_api_v1_imports_excel_post",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_import_csv_api_v1_imports_csv_post"
+                "$ref": "#/components/schemas/Body_import_excel_api_v1_imports_excel_post"
               }
             }
           },
@@ -3936,7 +3936,7 @@
         ],
         "title": "Body_actualizacion_masiva_api_v1_reports_actualizacion_masiva_post"
       },
-      "Body_import_csv_api_v1_imports_csv_post": {
+      "Body_import_excel_api_v1_imports_excel_post": {
         "properties": {
           "cuenta_bancaria_id": {
             "type": "string",
@@ -3963,7 +3963,7 @@
           "cuenta_bancaria_id",
           "archivo"
         ],
-        "title": "Body_import_csv_api_v1_imports_csv_post"
+        "title": "Body_import_excel_api_v1_imports_excel_post"
       },
       "Body_login_access_token_api_v1_login_access_token_post": {
         "properties": {

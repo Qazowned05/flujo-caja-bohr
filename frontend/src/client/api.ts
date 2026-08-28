@@ -40,7 +40,7 @@ type JsonResponse<
 export type User = Schema["UserRead"];
 export type Summary = JsonResponse<"/api/v1/flujo-caja/resumen", "get">;
 export type TransactionList = JsonResponse<"/api/v1/transacciones", "get">;
-export type ImportResult = JsonResponse<"/api/v1/imports/csv", "post">;
+export type ImportResult = JsonResponse<"/api/v1/imports/excel", "post">;
 export type BulkResult = JsonResponse<
   "/api/v1/reports/actualizacion-masiva",
   "post"
@@ -261,12 +261,12 @@ export const api = {
     ),
   transactions: (params: URLSearchParams) =>
     request<TransactionList>(`/api/v1/transacciones?${params}`),
-  importCsv: (accountId: string, file: File, type: "REAL" | "PROYECCION" = "REAL") => {
+  importBulk: (accountId: string, file: File, type: "REAL" | "PROYECCION" = "REAL") => {
     const form = new FormData();
     form.append("cuenta_bancaria_id", accountId);
     form.append("archivo", file);
     form.append("tipo_importacion", type);
-    return request<ImportResult>("/api/v1/imports/csv", {
+    return request<ImportResult>("/api/v1/imports/excel", {
       method: "POST",
       body: form,
     });

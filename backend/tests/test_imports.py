@@ -1,7 +1,11 @@
+import csv
+import io
 import uuid
+from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
+from openpyxl import Workbook, load_workbook
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -11,10 +15,13 @@ from app.main import app
 from app.modules.categorias.models import Actividad, Concepto, Tipo
 from app.modules.cuentas_bancos.models import Banco, CuentaBancaria
 from app.modules.imports.models import ImportBatch
+from app.modules.imports.routes import HEADERS
 from app.modules.shared.models import AuditLog
+from app.modules.sucursales.models import Sucursal
 from app.modules.transacciones.models import OrigenTransaccion, Transaccion
 from app.modules.usuarios.deps import get_current_user
 from app.modules.usuarios.models import User, UserRole
+from app.modules.vendedores.models import Vendedor
 
 
 @pytest.fixture()
@@ -53,10 +60,24 @@ def client_and_session():
 
 
 def upload(client: TestClient, account_id: uuid.UUID, content: str, import_type: str = "REAL"):
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Movimientos"
+    delimiter = ";" if content.splitlines()[0].count(";") else ","
+    for row in csv.reader(io.StringIO(content), delimiter=delimiter):
+        sheet.append(row)
+    output = io.BytesIO()
+    workbook.save(output)
     return client.post(
-        "/api/v1/imports/csv",
+        "/api/v1/imports/excel",
         data={"cuenta_bancaria_id": str(account_id), "tipo_importacion": import_type},
-        files={"archivo": ("movimientos.csv", content, "text/csv")},
+        files={
+            "archivo": (
+                "movimientos.xlsx",
+                output.getvalue(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
     )
 
 
@@ -82,6 +103,60 @@ def test_imports_new_rows_and_reports_duplicates(client_and_session):
     assert repeated.status_code == 200
     assert repeated.json()["filas_nuevas"] == 0
     assert repeated.json()["filas_duplicadas"] == 2
+
+
+def test_excel_template_includes_catalogue_reference_sheets(client_and_session):
+    client, session, _, _ = client_and_session
+    activity = Actividad(nombre="Ventas")
+    session.add(activity)
+    session.flush()
+    concept = Concepto(actividad_id=activity.id, nombre="Cobros")
+    session.add(concept)
+    session.flush()
+    kind = Tipo(concepto_id=concept.id, nombre="Contado")
+    branch = Sucursal(nombre="Lima", codigo="LIM")
+    session.add_all([kind, branch])
+    session.flush()
+    session.add(Vendedor(nombre="Ana", codigo="ANA", sucursal_id=branch.id))
+    session.commit()
+
+    response = client.get("/api/v1/imports/plantilla.xlsx")
+
+    assert response.status_code == 200
+    workbook = load_workbook(io.BytesIO(response.content), data_only=True)
+    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores"]
+    assert list(workbook["Tipificaciones"].values) == [
+        ("actividad", "concepto", "tipo"),
+        ("Ventas", "Cobros", "Contado"),
+    ]
+    assert list(workbook["Sucursales"].values) == [("sucursal",), ("Lima",)]
+    assert list(workbook["Vendedores"].values) == [("vendedor", "sucursal"), ("Ana", "Lima")]
+
+
+def test_import_accepts_native_excel_dates_and_numbers(client_and_session):
+    client, _, _, account = client_and_session
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Movimientos"
+    sheet.append(HEADERS)
+    sheet.append([date(2026, 8, 28), "Depósito", 12345, 1500.5, "", "", "", "", "", "", ""])
+    output = io.BytesIO()
+    workbook.save(output)
+
+    response = client.post(
+        "/api/v1/imports/excel",
+        data={"cuenta_bancaria_id": str(account.id), "tipo_importacion": "REAL"},
+        files={
+            "archivo": (
+                "movimientos.xlsx",
+                output.getvalue(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["filas_nuevas"] == 1
 
 
 def test_imports_itf_rows_with_repeated_operation_are_not_deduplicated(client_and_session):
