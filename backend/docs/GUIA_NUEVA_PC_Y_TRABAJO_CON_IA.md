@@ -15,36 +15,26 @@ Esta guía permite retomar el proyecto desde otra computadora sin recrear la inf
 | Base de datos | `flujo_caja` |
 | Artifact Registry | `flujo-caja-images` |
 | Firebase Hosting | `https://flujo-caja-enfocadosac.web.app` |
-| Última imagen desplegada | `1.0.7` |
-| Última revisión Cloud Run | `flujo-caja-api-00009-7hc` |
+| Repositorio GitHub | `https://github.com/Qazowned05/flujo-caja-enfocado-sac` |
+| Última imagen desplegada | `1.0.19` |
+| Última revisión Cloud Run | `flujo-caja-api-00021-87j` |
 
 No crees otra instancia de Cloud SQL, otro servicio Cloud Run ni otros secretos: los recursos anteriores ya existen y deben reutilizarse.
 
-## 2. Primera vez: guardar el código en GitHub
+## 2. Repositorio GitHub
 
-Actualmente esta copia de trabajo no tiene un repositorio Git inicializado. Haz este paso una sola vez desde la PC que contiene la versión actual.
+El repositorio remoto ya existe en `https://github.com/Qazowned05/flujo-caja-enfocado-sac`. GitHub es la fuente de código para todas las computadoras y subir código no modifica producción por sí solo.
 
-1. Crea un repositorio **privado** en GitHub, por ejemplo `flujo-caja`.
-2. No agregues README, licencia ni `.gitignore` desde GitHub.
-3. En PowerShell, desde la raíz del proyecto, ejecuta:
+Para comprobar que la copia local está vinculada y actualizada:
 
 ```powershell
 cd C:\Users\user\Desktop\FLUJ_CAJA_FASTAPI
-git init -b main
-git add .
+git remote -v
+git pull --ff-only origin main
 git status
 ```
 
-4. Revisa `git status` antes de continuar. No debe incluir `.env`, contraseñas, respaldos `.dump`, `.sql`, `node_modules` ni `venv`.
-5. Si la revisión es correcta, crea el primer commit y conecta el remoto:
-
-```powershell
-git commit -m "Estado inicial de flujo de caja"
-git remote add origin https://github.com/TU_USUARIO_O_ORGANIZACION/flujo-caja.git
-git push -u origin main
-```
-
-Después de esto, GitHub será la fuente de código para todas las computadoras. Subir código a GitHub no modifica producción por sí solo.
+Antes de crear un commit, revisa que `git status` no incluya `.env`, contraseñas, respaldos `.dump`, `.sql`, `node_modules` ni `venv`.
 
 ## 3. Programas requeridos en la nueva PC
 
@@ -71,7 +61,7 @@ En la nueva PC:
 
 ```powershell
 cd $HOME\Desktop
-git clone https://github.com/TU_USUARIO_O_ORGANIZACION/flujo-caja.git FLUJ_CAJA_FASTAPI
+git clone https://github.com/Qazowned05/flujo-caja-enfocado-sac.git FLUJ_CAJA_FASTAPI
 cd FLUJ_CAJA_FASTAPI
 ```
 
@@ -169,6 +159,18 @@ npm run build
 
 Si cambió una ruta, schema o respuesta del backend, siempre exporta OpenAPI y regenera `frontend/src/client/schema.ts` antes de compilar el frontend.
 
+### Importación masiva Excel
+
+La pantalla **Importar masivo** trabaja exclusivamente con archivos `.xlsx`. Descarga primero la plantilla desde la misma pantalla y completa solo la hoja `Movimientos`.
+
+- Para movimientos reales, usa las columnas de la hoja `Movimientos`, incluido `n_operacion`.
+- Para proyecciones, selecciona `Proyecciones`; la plantilla usa las columnas aplicables y exige `actividad`, `concepto` y `tipo`.
+- Para un movimiento múltiple, escribe dos o más números de operación separados por comas en una sola celda de `n_operacion`.
+- Las hojas `Tipificaciones`, `Sucursales` y `Vendedores` son catálogos de referencia para copiar valores. No se procesan como movimientos.
+- Excel puede contener fechas y montos como valores de celda normales; el sistema también admite las fechas indicadas en la plantilla.
+
+La API correspondiente es `GET /api/v1/imports/plantilla.xlsx` para descargar la plantilla y `POST /api/v1/imports/excel` para procesarla. Ambas requieren una sesión autenticada en la aplicación.
+
 ## 7. Flujo recomendado con IA
 
 1. Abre la carpeta raíz `FLUJ_CAJA_FASTAPI` en tu cliente de IA.
@@ -204,7 +206,7 @@ $PROJECT_ID = "flujo-caja-enfocadosac"
 $REGION = "us-central1"
 $REPOSITORY = "flujo-caja-images"
 $API_SERVICE = "flujo-caja-api"
-$VERSION = "1.0.8"
+$VERSION = "1.0.20"
 $IMAGE = "$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/flujo-caja-api:$VERSION"
 ```
 
