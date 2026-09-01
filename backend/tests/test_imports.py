@@ -125,6 +125,7 @@ def test_excel_template_includes_catalogue_reference_sheets(client_and_session):
     assert response.status_code == 200
     workbook = load_workbook(io.BytesIO(response.content), data_only=True)
     assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores"]
+    assert workbook["Movimientos"].column_dimensions["C"].number_format == "@"
     assert list(workbook["Tipificaciones"].values) == [
         ("actividad", "concepto", "tipo"),
         ("Ventas", "Cobros", "Contado"),

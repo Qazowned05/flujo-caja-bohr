@@ -57,6 +57,8 @@ def download_template(
     movements = workbook.active
     movements.title = "Movimientos"
     movements.append(PROJECTION_HEADERS if tipo_importacion == "PROYECCION" else HEADERS)
+    if tipo_importacion == "REAL":
+        movements.column_dimensions["C"].number_format = "@"
     tipifications = workbook.create_sheet("Tipificaciones")
     tipifications.append(["actividad", "concepto", "tipo"])
     for activity, concept, kind in db.execute(
