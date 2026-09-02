@@ -358,6 +358,7 @@ export function Transactions() {
       {editing && (
         <TransactionEditModal
           transaction={editing}
+          isAdmin={user.data?.rol === "admin"}
           onClose={() => setEditing(undefined)}
         />
       )}
@@ -489,9 +490,11 @@ function CancelTransactionButton({
 
 function TransactionEditModal({
   transaction,
+  isAdmin,
   onClose,
 }: {
   transaction: Transaction;
+  isAdmin: boolean;
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -504,6 +507,8 @@ function TransactionEditModal({
     actividad: transaction.actividad_id ?? "",
     concepto: transaction.concepto_id ?? "",
     tipo: transaction.tipo_id ?? "",
+    nOperacion: transaction.n_operacion ?? "",
+    monto: String(transaction.monto),
   });
   const [projectionId, setProjectionId] = useState("");
   const [operations, setOperations] = useState(transaction.numeros_operacion);
@@ -535,8 +540,14 @@ function TransactionEditModal({
         concepto_id: form.concepto || null,
         tipo_id: form.tipo || null,
         ...(projectionId ? { proyeccion_id: projectionId } : {}),
+        ...(isAdmin && {
+          monto: form.monto,
+          ...(transaction.origen !== "MULTIPLE" && transaction.origen !== "PROYECCION"
+            ? { n_operacion: form.nOperacion }
+            : {}),
+        }),
       });
-      return transaction.origen === "MULTIPLE"
+      return isAdmin && transaction.origen === "MULTIPLE"
         ? api.updateMultipleOperations(transaction.id, operations)
         : undefined;
     },
@@ -556,10 +567,10 @@ function TransactionEditModal({
         <ModalHeader>Editar transacción</ModalHeader>
         <ModalBody>
           <Text fontSize="sm" color="gray.500" mb="4">
-            El monto y la fecha no se pueden modificar aquí. Solo los movimientos múltiples permiten editar sus números de operación.
+            La fecha no se puede modificar aquí. Solo administradores pueden modificar el monto y los números de operación.
           </Text>
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing="4">
-            {transaction.origen === "MULTIPLE" && (
+            {isAdmin && transaction.origen === "MULTIPLE" && (
               <Field label="Números de operación" required>
                 <Box borderWidth="1px" borderRadius="md" p="2">
                   <HStack spacing="2" flexWrap="wrap">
@@ -582,6 +593,24 @@ function TransactionEditModal({
                   </HStack>
                 </Box>
                 <Text fontSize="xs" color="gray.500" mt="1">Presiona Enter para agregar. Se requieren al menos dos operaciones.</Text>
+              </Field>
+            )}
+            {isAdmin && transaction.origen !== "MULTIPLE" && transaction.origen !== "PROYECCION" && (
+              <Field label="N. operación" required>
+                <Input
+                  value={form.nOperacion}
+                  onChange={(event) => setForm({ ...form, nOperacion: event.target.value })}
+                />
+              </Field>
+            )}
+            {isAdmin && (
+              <Field label="Monto" required>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={form.monto}
+                  onChange={(event) => setForm({ ...form, monto: event.target.value })}
+                />
               </Field>
             )}
             <CatalogueSelect

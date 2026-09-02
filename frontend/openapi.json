@@ -6411,6 +6411,24 @@
               }
             ],
             "title": "Proyeccion Id"
+          },
+          "n_operacion": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "N Operacion"
+          },
+          "monto": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Monto"
           }
         },
         "additionalProperties": false,

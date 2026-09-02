@@ -1624,6 +1624,10 @@ export interface components {
             tipo_id?: string | null;
             /** Proyeccion Id */
             proyeccion_id?: string | null;
+            /** N Operacion */
+            n_operacion?: string;
+            /** Monto */
+            monto?: number | string;
         };
         /** UserCreate */
         UserCreate: {

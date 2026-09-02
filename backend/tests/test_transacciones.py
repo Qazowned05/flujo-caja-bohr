@@ -174,8 +174,15 @@ def test_multiple_transaction_creates_searches_and_updates_operations(client_and
     searched = client.get("/api/v1/transacciones", params={"busqueda": "VOUCHER-25"})
     assert [item["id"] for item in searched.json()["items"]] == [body["id"]]
 
+    update_url = f"/api/v1/transacciones/{body['id']}/operaciones"
+    assert client.patch(
+        update_url,
+        json={"operaciones": ["VOUCHER-37", "VOUCHER-25", "VOUCHER-08", "VOUCHER-10"]},
+    ).status_code == 403
+    user.rol = UserRole.ADMIN
+    session.commit()
     updated = client.patch(
-        f"/api/v1/transacciones/{body['id']}/operaciones",
+        update_url,
         json={"operaciones": ["VOUCHER-37", "VOUCHER-25", "VOUCHER-08", "VOUCHER-10"]},
     )
     assert updated.status_code == 200
@@ -580,7 +587,9 @@ def test_list_filters_combined_typification_hierarchy_and_dates(client_and_sessi
     assert response.json()["items"][0]["id"] == str(expected.id)
 
 
-def test_operational_patch_rejects_financial_fields_and_audits_allowed_changes(client_and_session):
+def test_only_admin_can_update_financial_fields_and_duplicate_operations_are_rejected(
+    client_and_session,
+):
     client, session, user = client_and_session
     account = make_account(session)
     transaction = make_transaction(
@@ -592,14 +601,11 @@ def test_operational_patch_rejects_financial_fields_and_audits_allowed_changes(c
 
     assert (
         client.patch(f"/api/v1/transacciones/{transaction.id}", json={"monto": "20"}).status_code
-        == 422
+        == 403
     )
-    assert (
-        client.patch(
-            f"/api/v1/transacciones/{transaction.id}", json={"n_operacion": "OP-OTRA"}
-        ).status_code
-        == 422
-    )
+    assert client.patch(
+        f"/api/v1/transacciones/{transaction.id}", json={"n_operacion": "OP-OTRA"}
+    ).status_code == 403
     response = client.patch(
         f"/api/v1/transacciones/{transaction.id}",
         json={
@@ -620,6 +626,33 @@ def test_operational_patch_rejects_financial_fields_and_audits_allowed_changes(c
     )
     assert audit is not None
     assert set(audit.cambios) == {"sucursal_id", "documento", "observaciones"}
+
+    duplicate = make_transaction(session, user, account, n_operacion="OP-DUPLICADA")
+    user.rol = UserRole.ADMIN
+    session.commit()
+    updated = client.patch(
+        f"/api/v1/transacciones/{transaction.id}",
+        json={"n_operacion": "OP-NUEVA", "monto": "20"},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["n_operacion"] == "OP-NUEVA"
+    assert updated.json()["monto"] == "20.00"
+    assert (
+        client.patch(
+            f"/api/v1/transacciones/{transaction.id}", json={"n_operacion": None}
+        ).status_code
+        == 422
+    )
+    assert (
+        client.patch(f"/api/v1/transacciones/{transaction.id}", json={"monto": None}).status_code
+        == 422
+    )
+    conflict = client.patch(
+        f"/api/v1/transacciones/{transaction.id}",
+        json={"n_operacion": duplicate.n_operacion},
+    )
+    assert conflict.status_code == 409
+    assert session.get(Transaccion, transaction.id).n_operacion == "OP-NUEVA"
 
 
 def test_anular_requires_admin_and_hides_transaction_by_default(client_and_session):

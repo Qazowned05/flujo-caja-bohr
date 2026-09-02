@@ -18,6 +18,28 @@ class TransaccionUpdate(BaseModel):
     concepto_id: uuid.UUID | None = None
     tipo_id: uuid.UUID | None = None
     proyeccion_id: uuid.UUID | None = None
+    n_operacion: str = Field(default=None, min_length=1, max_length=255)
+    monto: Decimal = None
+
+    @field_validator("n_operacion", mode="before")
+    @classmethod
+    def strip_n_operacion(cls, value: str | None) -> str:
+        if value is None:
+            raise ValueError("n_operacion no puede estar vacio.")
+        if isinstance(value, str):
+            value = value.strip()
+        if value == "":
+            raise ValueError("n_operacion no puede estar vacio.")
+        return value
+
+    @field_validator("monto")
+    @classmethod
+    def validate_monto(cls, value: Decimal | None) -> Decimal:
+        if value is None:
+            raise ValueError("monto no puede estar vacio.")
+        if not value.is_finite() or value == 0:
+            raise ValueError("monto debe ser finito y distinto de cero.")
+        return value
 
 
 class TransaccionMaterializar(BaseModel):

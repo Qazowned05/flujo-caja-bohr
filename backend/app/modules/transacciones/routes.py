@@ -482,6 +482,11 @@ def update_multiple_operations(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Solo se pueden editar operaciones de movimientos multiples activos.",
         )
+    if current_user.rol != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo un admin puede editar numeros de operacion.",
+        )
     operations = data.operaciones
     validate_operation_numbers(db, transaction.cuenta_bancaria_id, operations, transaction.id)
     previous = transaction.numeros_operacion
@@ -523,6 +528,24 @@ def update_transaccion(
 
     values = data.model_dump(exclude_unset=True)
     projection_id = values.pop("proyeccion_id", None)
+    financial_fields = {"n_operacion", "monto"} & values.keys()
+    if financial_fields and current_user.rol != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo un admin puede editar monto o numero de operacion.",
+        )
+    if "n_operacion" in values:
+        if transaction.origen in {OrigenTransaccion.PROYECCION, OrigenTransaccion.MULTIPLE}:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Esta transaccion no tiene un unico numero de operacion editable.",
+            )
+        validate_operation_numbers(
+            db,
+            transaction.cuenta_bancaria_id,
+            [values["n_operacion"]],
+            transaction.id,
+        )
     projection = None
     if projection_id:
         projection = db.get(Transaccion, projection_id)
