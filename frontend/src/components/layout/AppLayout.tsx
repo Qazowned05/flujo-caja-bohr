@@ -7,9 +7,10 @@ const operationNav = [
   { to: "/", label: "Resumen" },
   { to: "/transacciones", label: "Transacciones" },
   { to: "/movimiento-manual", label: "Nuevo movimiento manual" },
-  { to: "/importar", label: "Importar CSV" },
+  { to: "/importar", label: "Importar masivo" },
   { to: "/reportes", label: "Reportes" },
 ];
+const advisorNav = [...operationNav, { to: "/tipificaciones", label: "Guía de tipificaciones" }];
 const adminNav = [
   { to: "/administracion/usuarios", label: "Usuarios" },
   { to: "/administracion/bancos", label: "Bancos y cuentas" },
@@ -64,7 +65,7 @@ function Navigation({ onClose }: { onClose?: () => void }) {
         </Heading>
       </Box>
       <Stack spacing="1">
-        {group("OPERACIÓN", operationNav)}
+        {group("OPERACIÓN", user.data?.rol === "asesor" ? advisorNav : operationNav)}
         {user.data?.rol === "admin" && group("ADMINISTRACIÓN", adminNav)}
       </Stack>
       <Box mt="auto" borderTop="1px solid" borderColor="whiteAlpha.300" pt="4">
@@ -154,6 +155,4 @@ export function AppLayout() {
     </Flex>
   );
 }
-
-
 
