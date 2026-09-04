@@ -1,9 +1,8 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { Button, HStack, Input, Select, SimpleGrid, Stack, Td, Tr } from "@chakra-ui/react";
-import { api, type Sucursal, type Vendedor } from "../client/api";
-import { active, confirmDelete, Cancel, DataTable, Editor, Empty, Field, Loading, PageTitle, Status } from "../components/common";
+import { Box, Button, Card, CardBody, HStack, Input, Select, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { api, type Vendedor } from "../client/api";
+import { active, confirmDelete, Cancel, Editor, Empty, ErrorBox, Field, Loading, PageTitle, Status } from "../components/common";
 export function SellersPage() {
   const queryClient = useQueryClient();
   const sellers = useQuery({
@@ -17,6 +16,7 @@ export function SellersPage() {
   const [editing, setEditing] = useState<Vendedor>();
   const [form, setForm] = useState({ nombre: "", codigo: "", sucursal_id: "" });
   const [search, setSearch] = useState("");
+  const [openBranches, setOpenBranches] = useState<string[]>([]);
   const save = useMutation({
     mutationFn: () =>
       editing
@@ -39,9 +39,37 @@ export function SellersPage() {
     onSuccess: () =>
       void queryClient.invalidateQueries({ queryKey: ["vendedores"] }),
   });
-  const visibleSellers = sellers.data?.filter((item) =>
+  const visibleSellers = (sellers.data ?? []).filter((item) =>
     `${item.nombre} ${item.codigo}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
   );
+  const groups = [
+    ...(branches.data ?? []).map((branch) => ({
+      id: branch.id,
+      name: branch.nombre,
+      code: branch.codigo,
+      active: branch.is_active,
+      sellers: visibleSellers.filter((seller) => seller.sucursal_id === branch.id),
+    })),
+    {
+      id: "without-branch",
+      name: "Sin sucursal",
+      code: "",
+      active: true,
+      sellers: visibleSellers.filter((seller) => !seller.sucursal_id),
+    },
+  ].filter((group) => !search || group.sellers.length > 0);
+  const toggle = (id: string) =>
+    setOpenBranches((items) =>
+      items.includes(id) ? items.filter((item) => item !== id) : [...items, id],
+    );
+  const edit = (seller: Vendedor) => {
+    setEditing(seller);
+    setForm({
+      nombre: seller.nombre,
+      codigo: seller.codigo,
+      sucursal_id: seller.sucursal_id ?? "",
+    });
+  };
   return (
     <Stack spacing="6">
       <PageTitle
@@ -102,52 +130,54 @@ export function SellersPage() {
           onChange={(event) => setSearch(event.target.value)}
         />
       </Field>
-      {sellers.data && (
-        <DataTable
-          headers={["Nombre", "Código", "Sucursal", "Estado", ""]}
-          empty="No hay vendedores."
-        >
-          {visibleSellers?.map((item) => (
-            <Tr key={item.id}>
-              <Td>{item.nombre}</Td>
-              <Td>{item.codigo}</Td>
-              <Td>
-                {branches.data?.find((branch) => branch.id === item.sucursal_id)
-                  ?.nombre ?? "Sin sucursal"}
-              </Td>
-              <Td>
-                <Status active={item.is_active} />
-              </Td>
-              <Td>
-                <HStack>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setEditing(item);
-                      setForm({
-                        nombre: item.nombre,
-                        codigo: item.codigo,
-                        sucursal_id: item.sucursal_id ?? "",
-                      });
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="red"
-                    variant="ghost"
-                    onClick={() =>
-                      confirmDelete(item.nombre) && remove.mutate(item.id)
-                    }
-                  >
-                    Inactivar
-                  </Button>
-                </HStack>
-              </Td>
-            </Tr>
-          ))}
-        </DataTable>
+      {(sellers.isLoading || branches.isLoading) && <Loading />}
+      {(sellers.isError || branches.isError) && <ErrorBox error={sellers.error ?? branches.error} />}
+      {!sellers.isLoading && !branches.isLoading && visibleSellers.length === 0 && (
+        <Empty text="No hay vendedores." />
+      )}
+      {groups.length > 0 && (
+        <Card>
+          <CardBody>
+            {groups.map((group) => {
+              const isOpen = search ? true : openBranches.includes(group.id);
+              return (
+                <Box key={group.id} borderBottom="1px solid" borderColor="gray.100" py="3">
+                  <HStack>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      isDisabled={group.sellers.length === 0}
+                      onClick={() => toggle(group.id)}
+                    >
+                      {isOpen ? "-" : "+"}
+                    </Button>
+                    <Text fontWeight="bold">Sucursal: {group.name}</Text>
+                    {group.code && <Text color="gray.500" fontSize="sm">({group.code})</Text>}
+                    {group.id !== "without-branch" && <Status active={group.active} />}
+                  </HStack>
+                  {isOpen && group.sellers.map((seller) => (
+                    <HStack key={seller.id} ml={{ base: 3, md: 8 }} mt="3" justify="space-between">
+                      <Box>
+                        <Text>Vendedor: {seller.nombre} <Text as="span" color="gray.500">({seller.codigo})</Text><Status active={seller.is_active} /></Text>
+                      </Box>
+                      <HStack>
+                        <Button size="xs" onClick={() => edit(seller)}>Editar</Button>
+                        <Button
+                          size="xs"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => confirmDelete(seller.nombre) && remove.mutate(seller.id)}
+                        >
+                          Inactivar
+                        </Button>
+                      </HStack>
+                    </HStack>
+                  ))}
+                </Box>
+              );
+            })}
+          </CardBody>
+        </Card>
       )}
     </Stack>
   );
