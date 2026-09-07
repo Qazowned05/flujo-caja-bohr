@@ -96,12 +96,10 @@ export function TipificationsReferencePage() {
           </CardBody>
         </Card>
       )}
-      <Box>
-        <Text fontSize="lg" fontWeight="semibold">Sucursales y vendedores</Text>
-        <Text color="gray.500" fontSize="sm" mt="1">
-          Referencia de los vendedores asociados a cada sucursal.
-        </Text>
-      </Box>
+      <PageTitle
+        title="Sucursales y vendedores"
+        description="Referencia de los vendedores asociados a cada sucursal."
+      />
       <Field label="Buscar vendedor">
         <Input
           placeholder="Nombre o código"
