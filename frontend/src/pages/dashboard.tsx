@@ -143,7 +143,7 @@ export function Dashboard() {
       </Box>
       {summary.isLoading && <Loading />}
       {summary.isError && <ErrorBox error={summary.error} />}
-      {summary.data && <SimpleGrid columns={{ base: 1, xl: 2 }} spacing="5">
+      {summary.data && <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing="5">
         {summary.data.saldos_finales.map((balance) => {
           const totals = summary.data.por_divisa.find((item) => item.moneda === balance.moneda);
           return <Card key={balance.moneda} className="metric-card"><CardBody>
