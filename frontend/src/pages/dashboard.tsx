@@ -13,6 +13,7 @@ import {
   CardBody,
   Checkbox,
   Flex,
+  Grid,
   Heading,
   HStack,
   Popover,
@@ -143,7 +144,7 @@ export function Dashboard() {
       </Box>
       {summary.isLoading && <Loading />}
       {summary.isError && <ErrorBox error={summary.error} />}
-      {summary.data && <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing="5">
+      {summary.data && <Grid templateColumns={{ base: "1fr", md: "1fr 1fr", xl: "2fr 2fr 1fr" }} gap="5">
         {summary.data.saldos_finales.map((balance) => {
           const totals = summary.data.por_divisa.find((item) => item.moneda === balance.moneda);
           return <Card key={balance.moneda} className="metric-card"><CardBody>
@@ -183,7 +184,7 @@ export function Dashboard() {
             <Text color="gray.500" fontSize="xs" mt="4">Ver y gestionar transacciones</Text>
           </CardBody>
         </Card>
-      </SimpleGrid>}
+      </Grid>}
       <SimpleGrid columns={{ base: 1, md: 2, xl: 5 }} spacing="3" alignItems="end" bg="white" borderWidth="1px" borderRadius="md" p="3">
         <Field label="Período">
           <DateRangeFilter
