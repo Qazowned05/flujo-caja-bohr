@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -201,6 +201,26 @@ def get_resumen(
             key=lambda item: (item["moneda"], item["banco_nombre"], item["cuenta_alias"]),
         )
     ]
+    overdue_filters = [
+        Transaccion.is_active.is_(True),
+        Transaccion.origen == OrigenTransaccion.PROYECCION,
+        Transaccion.materializado.is_(False),
+        Transaccion.fecha < date.today(),
+    ]
+    if banco_id:
+        overdue_filters.append(CuentaBancaria.banco_id == banco_id)
+    if cuenta_bancaria_id:
+        overdue_filters.append(Transaccion.cuenta_bancaria_id == cuenta_bancaria_id)
+    if actividad_id:
+        overdue_filters.append(Transaccion.actividad_id == actividad_id)
+    if moneda:
+        overdue_filters.append(Transaccion.moneda == moneda.upper())
+    overdue_projections = db.scalar(
+        select(func.count())
+        .select_from(Transaccion)
+        .join(CuentaBancaria, Transaccion.cuenta_bancaria_id == CuentaBancaria.id)
+        .where(*overdue_filters)
+    ) or 0
     return FlujoCajaResumenRead(
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
@@ -211,6 +231,7 @@ def get_resumen(
             SaldoFinalRead(moneda=currency, **balances)
             for currency, balances in sorted(balance_by_currency.items())
         ],
+        proyecciones_vencidas=overdue_projections,
     )
 
 

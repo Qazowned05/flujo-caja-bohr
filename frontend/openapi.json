@@ -4652,6 +4652,10 @@
             },
             "type": "array",
             "title": "Saldos Finales"
+          },
+          "proyecciones_vencidas": {
+            "type": "integer",
+            "title": "Proyecciones Vencidas"
           }
         },
         "type": "object",
@@ -4661,7 +4665,8 @@
           "incluir_proyecciones",
           "por_divisa",
           "por_cuenta",
-          "saldos_finales"
+          "saldos_finales",
+          "proyecciones_vencidas"
         ],
         "title": "FlujoCajaResumenRead"
       },

@@ -45,6 +45,11 @@ const currentMonthEnd = () => {
   return localIsoDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 };
 
+const yesterday = () => {
+  const today = new Date();
+  return localIsoDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1));
+};
+
 const toDate = (value: string) => (value ? new Date(`${value}T00:00:00`) : undefined);
 const toDateValue = (value: Date) =>
   `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
@@ -150,6 +155,34 @@ export function Dashboard() {
             </SimpleGrid>
           </CardBody></Card>;
         })}
+        <Card
+          as="button"
+          className="metric-card"
+          cursor="pointer"
+          textAlign="left"
+          borderColor={summary.data.proyecciones_vencidas ? "orange.300" : undefined}
+          borderWidth={summary.data.proyecciones_vencidas ? "1px" : undefined}
+          onClick={() => {
+            const filters = new URLSearchParams({
+              fecha_hasta: yesterday(),
+              origen: "PROYECCION",
+              estado: "PROYECTADO",
+              ...(account ? { cuenta_bancaria_id: account } : {}),
+              ...(activity ? { actividad_id: activity } : {}),
+            });
+            window.location.assign(`/transacciones?${filters}`);
+          }}
+        >
+          <CardBody>
+            <Text fontWeight="bold">Proyecciones vencidas</Text>
+            <Metric
+              label="Pendientes anteriores a hoy"
+              value={String(summary.data.proyecciones_vencidas)}
+              color={summary.data.proyecciones_vencidas ? "orange.600" : "gray.600"}
+            />
+            <Text color="gray.500" fontSize="xs" mt="4">Ver y gestionar transacciones</Text>
+          </CardBody>
+        </Card>
       </SimpleGrid>}
       <SimpleGrid columns={{ base: 1, md: 2, xl: 5 }} spacing="3" alignItems="end" bg="white" borderWidth="1px" borderRadius="md" p="3">
         <Field label="Período">

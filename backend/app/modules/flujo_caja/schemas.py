@@ -38,6 +38,7 @@ class FlujoCajaResumenRead(BaseModel):
     por_divisa: list[ResumenGrupoRead]
     por_cuenta: list[ResumenCuentaRead]
     saldos_finales: list[SaldoFinalRead]
+    proyecciones_vencidas: int
 
 
 class DesgloseTipoRead(BaseModel):

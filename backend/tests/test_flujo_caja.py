@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -181,6 +181,60 @@ def test_resumen_filters_and_excludes_projections(client_and_session):
         params={"fecha_desde": "2026-08-11", "fecha_hasta": "2026-08-10"},
     )
     assert invalid.status_code == 422
+
+
+def test_resumen_counts_overdue_unmaterialized_projections(client_and_session):
+    client, session, user = client_and_session
+    _, account = make_account(session, "Banco PEN", "PEN")
+    _, other_account = make_account(session, "Banco USD", "USD")
+    yesterday = date.today() - timedelta(days=1)
+    make_transaction(
+        session,
+        user,
+        account,
+        "50.00",
+        fecha=yesterday,
+        origen=OrigenTransaccion.PROYECCION,
+        estado=EstadoTransaccion.PROYECTADO,
+        materializado=False,
+    )
+    make_transaction(
+        session,
+        user,
+        account,
+        "20.00",
+        fecha=date.today(),
+        origen=OrigenTransaccion.PROYECCION,
+        estado=EstadoTransaccion.PROYECTADO,
+        materializado=False,
+    )
+    make_transaction(
+        session,
+        user,
+        account,
+        "30.00",
+        fecha=yesterday,
+        origen=OrigenTransaccion.PROYECCION,
+        estado=EstadoTransaccion.CONFIRMADO,
+        materializado=True,
+    )
+    make_transaction(
+        session,
+        user,
+        other_account,
+        "40.00",
+        fecha=yesterday,
+        origen=OrigenTransaccion.PROYECCION,
+        estado=EstadoTransaccion.PROYECTADO,
+        materializado=False,
+    )
+
+    response = client.get(
+        "/api/v1/flujo-caja/resumen", params={"cuenta_bancaria_id": str(account.id)}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["proyecciones_vencidas"] == 1
 
 
 def test_desglose_converts_groups_and_filters_projections(client_and_session):

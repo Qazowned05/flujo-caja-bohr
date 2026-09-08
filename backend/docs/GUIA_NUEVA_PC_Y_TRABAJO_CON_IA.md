@@ -16,8 +16,8 @@ Esta guía permite retomar el proyecto desde otra computadora sin recrear la inf
 | Artifact Registry | `flujo-caja-images` |
 | Firebase Hosting | `https://flujo-caja-enfocadosac.web.app` |
 | Repositorio GitHub | `https://github.com/Qazowned05/flujo-caja-enfocado-sac` |
-| Última imagen desplegada | `1.0.23` |
-| Última revisión Cloud Run | `flujo-caja-api-00025-cfv` |
+| Última imagen desplegada | `1.0.24` |
+| Última revisión Cloud Run | `flujo-caja-api-00026-h2b` |
 
 No crees otra instancia de Cloud SQL, otro servicio Cloud Run ni otros secretos: los recursos anteriores ya existen y deben reutilizarse.
 
@@ -206,7 +206,7 @@ $PROJECT_ID = "flujo-caja-enfocadosac"
 $REGION = "us-central1"
 $REPOSITORY = "flujo-caja-images"
 $API_SERVICE = "flujo-caja-api"
-$VERSION = "1.0.24"
+$VERSION = "1.0.25"
 $IMAGE = "$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/flujo-caja-api:$VERSION"
 ```
 

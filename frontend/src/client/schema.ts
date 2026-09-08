@@ -1051,6 +1051,8 @@ export interface components {
             por_cuenta: components["schemas"]["ResumenCuentaRead"][];
             /** Saldos Finales */
             saldos_finales: components["schemas"]["SaldoFinalRead"][];
+            /** Proyecciones Vencidas */
+            proyecciones_vencidas: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

@@ -64,6 +64,7 @@ export function Transactions() {
   const [typeId, setTypeId] = useState(() => initialFilters.get("tipo_id") ?? "");
   const [createdById, setCreatedById] = useState(() => initialFilters.get("created_by_id") ?? "");
   const [documentFilter, setDocumentFilter] = useState(() => initialFilters.get("con_documento") ?? "");
+  const [origin, setOrigin] = useState(() => initialFilters.get("origen") ?? "");
   const [search, setSearch] = useState(() => initialFilters.get("busqueda") ?? "");
   const [offset, setOffset] = useState(0);
   const [viewing, setViewing] = useState<Transaction>();
@@ -77,7 +78,7 @@ export function Transactions() {
   const users = useQuery({ queryKey: ["users"], queryFn: api.users, enabled: user.data?.rol === "admin" });
   const catalogues = useCatalogues();
   const data = useQuery({
-    queryKey: ["transactions", status, account, from, until, activityId, conceptId, typeId, createdById, documentFilter, search, offset],
+    queryKey: ["transactions", status, account, from, until, activityId, conceptId, typeId, createdById, documentFilter, origin, search, offset],
     queryFn: () =>
       api.transactions(
         new URLSearchParams({
@@ -92,6 +93,7 @@ export function Transactions() {
           ...(typeId ? { tipo_id: typeId } : {}),
           ...(createdById ? { created_by_id: createdById } : {}),
           ...(documentFilter ? { con_documento: documentFilter } : {}),
+          ...(origin ? { origen: origin } : {}),
           ...(search.trim() ? { busqueda: search.trim() } : {}),
         }),
       ),
@@ -104,7 +106,7 @@ export function Transactions() {
   const typeById = new Map(active(catalogues.tipos.data).map((item) => [item.id, item.nombre]));
   const branchById = new Map(active(catalogues.sucursales.data).map((item) => [item.id, item.nombre]));
   const sellerById = new Map(active(catalogues.vendedores.data).map((item) => [item.id, item.nombre]));
-  const hasBreakdownFilters = Boolean(from || until || activityId || conceptId || typeId);
+  const hasBreakdownFilters = Boolean(from || until || activityId || conceptId || typeId || origin);
   const clearBreakdownFilters = () => {
     setAccount("");
     setFrom("");
@@ -113,6 +115,7 @@ export function Transactions() {
     setConceptId("");
     setTypeId("");
     setCreatedById("");
+    setOrigin("");
     setSearch("");
     setOffset(0);
     window.history.replaceState({}, "", "/transacciones");
@@ -200,8 +203,8 @@ export function Transactions() {
                }}
              />
            </Field>
-           <Field label="Documento">
-             <Select
+            <Field label="Documento">
+              <Select
                value={documentFilter}
                onChange={(event) => {
                  setDocumentFilter(event.target.value);
@@ -211,8 +214,23 @@ export function Transactions() {
                <option value="">Con y sin documento</option>
                <option value="true">Con documento</option>
                <option value="false">Sin documento</option>
-             </Select>
-           </Field>
+              </Select>
+            </Field>
+            <Field label="Origen">
+              <Select
+                value={origin}
+                onChange={(event) => {
+                  setOrigin(event.target.value);
+                  setOffset(0);
+                }}
+              >
+                <option value="">Todos los orígenes</option>
+                <option value="IMPORTADO">Importado</option>
+                <option value="MANUAL">Manual</option>
+                <option value="MULTIPLE">Múltiple</option>
+                <option value="PROYECCION">Proyección</option>
+              </Select>
+            </Field>
       </SimpleGrid>
       {hasBreakdownFilters && (
         <HStack flexWrap="wrap" spacing="2" bg="white" borderWidth="1px" borderRadius="md" p="3">
@@ -220,7 +238,8 @@ export function Transactions() {
           {from && <Badge colorScheme="blue">Fecha: {from}{until && until !== from ? ` a ${until}` : ""}</Badge>}
           {activityId && <Badge>Actividad: {activityById.get(activityId) ?? activityId} ({activityId})</Badge>}
           {conceptId && <Badge>Concepto: {conceptById.get(conceptId) ?? conceptId} ({conceptId})</Badge>}
-          {typeId && <Badge>Tipo: {typeById.get(typeId) ?? typeId} ({typeId})</Badge>}
+           {typeId && <Badge>Tipo: {typeById.get(typeId) ?? typeId} ({typeId})</Badge>}
+           {origin && <Badge>Origen: {origin}</Badge>}
           <Button size="xs" variant="ghost" onClick={clearBreakdownFilters}>Limpiar filtros</Button>
         </HStack>
       )}
