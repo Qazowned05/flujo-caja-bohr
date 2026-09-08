@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     secret_key: str = "change-this-development-secret"
     access_token_expire_minutes: int = 480
     backend_cors_origins: list[str] = ["http://localhost:5173"]
+    profit_and_loss_enabled: bool = False
 
 
 @lru_cache

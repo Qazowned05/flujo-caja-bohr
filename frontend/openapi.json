@@ -3650,6 +3650,1264 @@
           }
         }
       }
+    },
+    "/api/v1/ganancias-perdidas/centros": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "List Centros",
+        "operationId": "list_centros_api_v1_ganancias_perdidas_centros_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CentroResultadoRead"
+                  },
+                  "title": "Response List Centros Api V1 Ganancias Perdidas Centros Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Create Centro",
+        "operationId": "create_centro_api_v1_ganancias_perdidas_centros_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CentroResultadoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CentroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/centros/{centro_id}": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Update Centro",
+        "operationId": "update_centro_api_v1_ganancias_perdidas_centros__centro_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "centro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Centro Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CentroResultadoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CentroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Delete Centro",
+        "operationId": "delete_centro_api_v1_ganancias_perdidas_centros__centro_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "centro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Centro Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CentroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/rubros": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "List Rubros",
+        "operationId": "list_rubros_api_v1_ganancias_perdidas_rubros_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RubroResultadoRead"
+                  },
+                  "title": "Response List Rubros Api V1 Ganancias Perdidas Rubros Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Create Rubro",
+        "operationId": "create_rubro_api_v1_ganancias_perdidas_rubros_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RubroResultadoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/rubros/{rubro_id}": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Update Rubro",
+        "operationId": "update_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rubro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Rubro Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RubroResultadoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Delete Rubro",
+        "operationId": "delete_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rubro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Rubro Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubroResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/mapeos": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "List Mapeos",
+        "operationId": "list_mapeos_api_v1_ganancias_perdidas_mapeos_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MapeoResultadoRead"
+                  },
+                  "title": "Response List Mapeos Api V1 Ganancias Perdidas Mapeos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Create Mapeo",
+        "operationId": "create_mapeo_api_v1_ganancias_perdidas_mapeos_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MapeoResultadoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapeoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/mapeos/{mapeo_id}": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Update Mapeo",
+        "operationId": "update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mapeo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mapeo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MapeoResultadoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapeoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Delete Mapeo",
+        "operationId": "delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mapeo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mapeo Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapeoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/reglas-distribucion": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "List Distribution Rules",
+        "operationId": "list_distribution_rules_api_v1_ganancias_perdidas_reglas_distribucion_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Inactive"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReglaDistribucionRead"
+                  },
+                  "title": "Response List Distribution Rules Api V1 Ganancias Perdidas Reglas Distribucion Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Create Distribution Rule",
+        "operationId": "create_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReglaDistribucionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReglaDistribucionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/reglas-distribucion/{regla_id}": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Update Distribution Rule",
+        "operationId": "update_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "regla_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Regla Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReglaDistribucionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReglaDistribucionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Delete Distribution Rule",
+        "operationId": "delete_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "regla_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Regla Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReglaDistribucionRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/plantilla.xlsx": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Download Template",
+        "operationId": "download_template_api_v1_ganancias_perdidas_plantilla_xlsx_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ganancias-perdidas/importar.xlsx": {
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Import Asientos",
+        "operationId": "import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ganancias-perdidas/importar-base-gastos": {
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Import Base Gastos",
+        "operationId": "import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ganancias-perdidas/asientos": {
+      "post": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Create Manual Entry",
+        "operationId": "create_manual_entry_api_v1_ganancias_perdidas_asientos_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsientoResultadoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsientoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "List Asientos",
+        "operationId": "list_asientos_api_v1_ganancias_perdidas_asientos_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fecha_desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Desde"
+            }
+          },
+          {
+            "name": "fecha_hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Hasta"
+            }
+          },
+          {
+            "name": "rubro_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rubro Id"
+            }
+          },
+          {
+            "name": "centro_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Centro Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AsientoResultadoRead"
+                  },
+                  "title": "Response List Asientos Api V1 Ganancias Perdidas Asientos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/asientos/{asiento_id}": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Update Manual Entry",
+        "operationId": "update_manual_entry_api_v1_ganancias_perdidas_asientos__asiento_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asiento_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asiento Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsientoResultadoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsientoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/asientos/{asiento_id}/anular": {
+      "patch": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Cancel Entry",
+        "operationId": "cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asiento_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asiento Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnularAsientoResultado"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsientoResultadoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/resumen": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Summary",
+        "operationId": "summary_api_v1_ganancias_perdidas_resumen_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fecha_desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Desde"
+            }
+          },
+          {
+            "name": "fecha_hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Hasta"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenGananciasPerdidasRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3809,6 +5067,400 @@
         ],
         "title": "ActualizacionMasivaResponse"
       },
+      "AnularAsientoResultado": {
+        "properties": {
+          "motivo": {
+            "type": "string",
+            "minLength": 3,
+            "title": "Motivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "motivo"
+        ],
+        "title": "AnularAsientoResultado"
+      },
+      "AsientoResultadoCreate": {
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha"
+          },
+          "cuenta_contable": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Cuenta Contable"
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Descripcion"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documento"
+          },
+          "moneda": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Moneda",
+            "default": "PEN"
+          },
+          "debe": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Debe",
+            "default": "0"
+          },
+          "haber": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Haber",
+            "default": "0"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "rubro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Rubro Id"
+          },
+          "observaciones": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observaciones"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fecha",
+          "cuenta_contable",
+          "descripcion",
+          "rubro_id"
+        ],
+        "title": "AsientoResultadoCreate"
+      },
+      "AsientoResultadoRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date",
+            "title": "Fecha"
+          },
+          "cuenta_contable": {
+            "type": "string",
+            "title": "Cuenta Contable"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documento"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          },
+          "debe": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Debe"
+          },
+          "haber": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Haber"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "rubro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Rubro Id"
+          },
+          "observaciones": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observaciones"
+          },
+          "lote_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lote Id"
+          },
+          "origen": {
+            "$ref": "#/components/schemas/OrigenAsientoResultado"
+          },
+          "asiento_origen_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asiento Origen Id"
+          },
+          "es_resultado": {
+            "type": "boolean",
+            "title": "Es Resultado"
+          },
+          "motivo_anulacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motivo Anulacion"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fecha",
+          "cuenta_contable",
+          "descripcion",
+          "documento",
+          "moneda",
+          "debe",
+          "haber",
+          "centro_resultado_id",
+          "rubro_id",
+          "observaciones",
+          "lote_id",
+          "origen",
+          "asiento_origen_id",
+          "es_resultado",
+          "motivo_anulacion",
+          "is_active"
+        ],
+        "title": "AsientoResultadoRead"
+      },
+      "AsientoResultadoUpdate": {
+        "properties": {
+          "fecha": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha"
+          },
+          "cuenta_contable": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuenta Contable"
+          },
+          "descripcion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descripcion"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documento"
+          },
+          "moneda": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Moneda"
+          },
+          "debe": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debe"
+          },
+          "haber": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Haber"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "rubro_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubro Id"
+          },
+          "observaciones": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observaciones"
+          }
+        },
+        "type": "object",
+        "title": "AsientoResultadoUpdate"
+      },
       "BancoCreate": {
         "properties": {
           "nombre": {
@@ -3936,6 +5588,34 @@
         ],
         "title": "Body_actualizacion_masiva_api_v1_reports_actualizacion_masiva_post"
       },
+      "Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post": {
+        "properties": {
+          "archivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Archivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "archivo"
+        ],
+        "title": "Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"
+      },
+      "Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post": {
+        "properties": {
+          "archivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Archivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "archivo"
+        ],
+        "title": "Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"
+      },
       "Body_import_excel_api_v1_imports_excel_post": {
         "properties": {
           "cuenta_bancaria_id": {
@@ -4023,6 +5703,130 @@
           "password"
         ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
+      },
+      "CentroResultadoCreate": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Orden",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre"
+        ],
+        "title": "CentroResultadoCreate"
+      },
+      "CentroResultadoRead": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Orden",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre",
+          "id",
+          "is_active",
+          "deleted_at"
+        ],
+        "title": "CentroResultadoRead"
+      },
+      "CentroResultadoUpdate": {
+        "properties": {
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "orden": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orden"
+          }
+        },
+        "type": "object",
+        "title": "CentroResultadoUpdate"
       },
       "ConceptoCreate": {
         "properties": {
@@ -4838,6 +6642,245 @@
         ],
         "title": "ImportResponse"
       },
+      "ImportResultadoRead": {
+        "properties": {
+          "lote_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Lote Id"
+          },
+          "total_filas": {
+            "type": "integer",
+            "title": "Total Filas"
+          },
+          "filas_nuevas": {
+            "type": "integer",
+            "title": "Filas Nuevas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lote_id",
+          "total_filas",
+          "filas_nuevas"
+        ],
+        "title": "ImportResultadoRead"
+      },
+      "MapeoResultadoCreate": {
+        "properties": {
+          "cuenta_contable": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Cuenta Contable"
+          },
+          "rubro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Rubro Id"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "vigente_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Desde"
+          },
+          "vigente_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Hasta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cuenta_contable",
+          "rubro_id"
+        ],
+        "title": "MapeoResultadoCreate"
+      },
+      "MapeoResultadoRead": {
+        "properties": {
+          "cuenta_contable": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Cuenta Contable"
+          },
+          "rubro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Rubro Id"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "vigente_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Desde"
+          },
+          "vigente_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Hasta"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cuenta_contable",
+          "rubro_id",
+          "id",
+          "is_active"
+        ],
+        "title": "MapeoResultadoRead"
+      },
+      "MapeoResultadoUpdate": {
+        "properties": {
+          "cuenta_contable": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuenta Contable"
+          },
+          "rubro_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubro Id"
+          },
+          "centro_resultado_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Resultado Id"
+          },
+          "vigente_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Desde"
+          },
+          "vigente_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Hasta"
+          }
+        },
+        "type": "object",
+        "title": "MapeoResultadoUpdate"
+      },
+      "NaturalezaRubro": {
+        "type": "string",
+        "enum": [
+          "INGRESO",
+          "CONTRA_INGRESO",
+          "COSTO_VENTA",
+          "GASTO_OPERATIVO",
+          "INGRESO_FINANCIERO",
+          "GASTO_FINANCIERO",
+          "IMPUESTO"
+        ],
+        "title": "NaturalezaRubro"
+      },
+      "OrigenAsientoResultado": {
+        "type": "string",
+        "enum": [
+          "IMPORTADO",
+          "BASE_GASTOS",
+          "MANUAL",
+          "DISTRIBUIDO"
+        ],
+        "title": "OrigenAsientoResultado"
+      },
       "OrigenTransaccion": {
         "type": "string",
         "enum": [
@@ -4847,6 +6890,211 @@
           "MULTIPLE"
         ],
         "title": "OrigenTransaccion"
+      },
+      "ReglaDistribucionCreate": {
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "cuenta_contable": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuenta Contable"
+          },
+          "rubro_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubro Id"
+          },
+          "vigente_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Desde"
+          },
+          "vigente_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Hasta"
+          },
+          "lineas": {
+            "items": {
+              "$ref": "#/components/schemas/ReglaDistribucionLineaCreate-Input"
+            },
+            "type": "array",
+            "minItems": 2,
+            "title": "Lineas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nombre",
+          "lineas"
+        ],
+        "title": "ReglaDistribucionCreate"
+      },
+      "ReglaDistribucionLineaCreate-Input": {
+        "properties": {
+          "centro_resultado_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Centro Resultado Id"
+          },
+          "porcentaje": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Porcentaje"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_resultado_id",
+          "porcentaje"
+        ],
+        "title": "ReglaDistribucionLineaCreate"
+      },
+      "ReglaDistribucionLineaCreate-Output": {
+        "properties": {
+          "centro_resultado_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Centro Resultado Id"
+          },
+          "porcentaje": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Porcentaje"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_resultado_id",
+          "porcentaje"
+        ],
+        "title": "ReglaDistribucionLineaCreate"
+      },
+      "ReglaDistribucionRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "cuenta_contable": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cuenta Contable"
+          },
+          "rubro_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubro Id"
+          },
+          "vigente_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Desde"
+          },
+          "vigente_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigente Hasta"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "lineas": {
+            "items": {
+              "$ref": "#/components/schemas/ReglaDistribucionLineaCreate-Output"
+            },
+            "type": "array",
+            "title": "Lineas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "cuenta_contable",
+          "rubro_id",
+          "vigente_desde",
+          "vigente_hasta",
+          "is_active",
+          "lineas"
+        ],
+        "title": "ReglaDistribucionRead"
       },
       "ReporteCambio": {
         "properties": {
@@ -4890,6 +7138,62 @@
           "mensaje"
         ],
         "title": "ReporteError"
+      },
+      "ResultadoRubroRead": {
+        "properties": {
+          "rubro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Rubro Id"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "naturaleza": {
+            "$ref": "#/components/schemas/NaturalezaRubro"
+          },
+          "padre_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Padre Id"
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total"
+          },
+          "por_centro": {
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+            },
+            "type": "object",
+            "title": "Por Centro"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rubro_id",
+          "codigo",
+          "nombre",
+          "naturaleza",
+          "padre_id",
+          "total",
+          "por_centro"
+        ],
+        "title": "ResultadoRubroRead"
       },
       "ResumenCuentaRead": {
         "properties": {
@@ -4978,6 +7282,86 @@
         ],
         "title": "ResumenCuentaRead"
       },
+      "ResumenGananciasPerdidasRead": {
+        "properties": {
+          "fecha_desde": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Desde"
+          },
+          "fecha_hasta": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Hasta"
+          },
+          "centros": {
+            "items": {
+              "$ref": "#/components/schemas/CentroResultadoRead"
+            },
+            "type": "array",
+            "title": "Centros"
+          },
+          "rubros": {
+            "items": {
+              "$ref": "#/components/schemas/ResultadoRubroRead"
+            },
+            "type": "array",
+            "title": "Rubros"
+          },
+          "ingresos_netos": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Ingresos Netos"
+          },
+          "utilidad_bruta": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilidad Bruta"
+          },
+          "gastos_operativos": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Gastos Operativos"
+          },
+          "utilidad_operativa": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilidad Operativa"
+          },
+          "utilidad_neta": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilidad Neta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fecha_desde",
+          "fecha_hasta",
+          "centros",
+          "rubros",
+          "ingresos_netos",
+          "utilidad_bruta",
+          "gastos_operativos",
+          "utilidad_operativa",
+          "utilidad_neta"
+        ],
+        "title": "ResumenGananciasPerdidasRead"
+      },
       "ResumenGrupoRead": {
         "properties": {
           "moneda": {
@@ -5042,6 +7426,184 @@
           "cantidad_proyectadas"
         ],
         "title": "ResumenGrupoRead"
+      },
+      "RubroResultadoCreate": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "naturaleza": {
+            "$ref": "#/components/schemas/NaturalezaRubro"
+          },
+          "padre_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Padre Id"
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Orden",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre",
+          "naturaleza"
+        ],
+        "title": "RubroResultadoCreate"
+      },
+      "RubroResultadoRead": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "naturaleza": {
+            "$ref": "#/components/schemas/NaturalezaRubro"
+          },
+          "padre_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Padre Id"
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Orden",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre",
+          "naturaleza",
+          "id",
+          "is_active",
+          "deleted_at"
+        ],
+        "title": "RubroResultadoRead"
+      },
+      "RubroResultadoUpdate": {
+        "properties": {
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "naturaleza": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NaturalezaRubro"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "padre_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Padre Id"
+          },
+          "orden": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orden"
+          }
+        },
+        "type": "object",
+        "title": "RubroResultadoUpdate"
       },
       "SaldoFinalRead": {
         "properties": {

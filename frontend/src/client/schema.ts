@@ -658,6 +658,270 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ganancias-perdidas/centros": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Centros */
+        get: operations["list_centros_api_v1_ganancias_perdidas_centros_get"];
+        put?: never;
+        /** Create Centro */
+        post: operations["create_centro_api_v1_ganancias_perdidas_centros_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/centros/{centro_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Centro */
+        delete: operations["delete_centro_api_v1_ganancias_perdidas_centros__centro_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Centro */
+        patch: operations["update_centro_api_v1_ganancias_perdidas_centros__centro_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/rubros": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Rubros */
+        get: operations["list_rubros_api_v1_ganancias_perdidas_rubros_get"];
+        put?: never;
+        /** Create Rubro */
+        post: operations["create_rubro_api_v1_ganancias_perdidas_rubros_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/rubros/{rubro_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Rubro */
+        delete: operations["delete_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Rubro */
+        patch: operations["update_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/mapeos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Mapeos */
+        get: operations["list_mapeos_api_v1_ganancias_perdidas_mapeos_get"];
+        put?: never;
+        /** Create Mapeo */
+        post: operations["create_mapeo_api_v1_ganancias_perdidas_mapeos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/mapeos/{mapeo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Mapeo */
+        delete: operations["delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Mapeo */
+        patch: operations["update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/reglas-distribucion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Distribution Rules */
+        get: operations["list_distribution_rules_api_v1_ganancias_perdidas_reglas_distribucion_get"];
+        put?: never;
+        /** Create Distribution Rule */
+        post: operations["create_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/reglas-distribucion/{regla_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Distribution Rule */
+        delete: operations["delete_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Distribution Rule */
+        patch: operations["update_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/plantilla.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Template */
+        get: operations["download_template_api_v1_ganancias_perdidas_plantilla_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/importar.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Asientos */
+        post: operations["import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/importar-base-gastos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Base Gastos */
+        post: operations["import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/asientos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Asientos */
+        get: operations["list_asientos_api_v1_ganancias_perdidas_asientos_get"];
+        put?: never;
+        /** Create Manual Entry */
+        post: operations["create_manual_entry_api_v1_ganancias_perdidas_asientos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/asientos/{asiento_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Manual Entry */
+        patch: operations["update_manual_entry_api_v1_ganancias_perdidas_asientos__asiento_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/asientos/{asiento_id}/anular": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Cancel Entry */
+        patch: operations["cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch"];
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/resumen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Summary */
+        get: operations["summary_api_v1_ganancias_perdidas_resumen_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -722,6 +986,117 @@ export interface components {
             /** Cambios */
             cambios: components["schemas"]["ReporteCambio"][];
         };
+        /** AnularAsientoResultado */
+        AnularAsientoResultado: {
+            /** Motivo */
+            motivo: string;
+        };
+        /** AsientoResultadoCreate */
+        AsientoResultadoCreate: {
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Cuenta Contable */
+            cuenta_contable: string;
+            /** Descripcion */
+            descripcion: string;
+            /** Documento */
+            documento?: string | null;
+            /**
+             * Moneda
+             * @default PEN
+             */
+            moneda: string;
+            /**
+             * Debe
+             * @default 0
+             */
+            debe: number | string;
+            /**
+             * Haber
+             * @default 0
+             */
+            haber: number | string;
+            /** Centro Resultado Id */
+            centro_resultado_id?: string | null;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
+            /** Observaciones */
+            observaciones?: string | null;
+        };
+        /** AsientoResultadoRead */
+        AsientoResultadoRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Fecha
+             * Format: date
+             */
+            fecha: string;
+            /** Cuenta Contable */
+            cuenta_contable: string;
+            /** Descripcion */
+            descripcion: string;
+            /** Documento */
+            documento: string | null;
+            /** Moneda */
+            moneda: string;
+            /** Debe */
+            debe: string;
+            /** Haber */
+            haber: string;
+            /** Centro Resultado Id */
+            centro_resultado_id: string | null;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
+            /** Observaciones */
+            observaciones: string | null;
+            /** Lote Id */
+            lote_id: string | null;
+            origen: components["schemas"]["OrigenAsientoResultado"];
+            /** Asiento Origen Id */
+            asiento_origen_id: string | null;
+            /** Es Resultado */
+            es_resultado: boolean;
+            /** Motivo Anulacion */
+            motivo_anulacion: string | null;
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** AsientoResultadoUpdate */
+        AsientoResultadoUpdate: {
+            /** Fecha */
+            fecha?: string | null;
+            /** Cuenta Contable */
+            cuenta_contable?: string | null;
+            /** Descripcion */
+            descripcion?: string | null;
+            /** Documento */
+            documento?: string | null;
+            /** Moneda */
+            moneda?: string | null;
+            /** Debe */
+            debe?: number | string | null;
+            /** Haber */
+            haber?: number | string | null;
+            /** Centro Resultado Id */
+            centro_resultado_id?: string | null;
+            /** Rubro Id */
+            rubro_id?: string | null;
+            /** Observaciones */
+            observaciones?: string | null;
+        };
         /** BancoCreate */
         BancoCreate: {
             /** Nombre */
@@ -772,6 +1147,16 @@ export interface components {
              */
             confirmar: boolean;
         };
+        /** Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post */
+        Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post: {
+            /** Archivo */
+            archivo: string;
+        };
+        /** Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post */
+        Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post: {
+            /** Archivo */
+            archivo: string;
+        };
         /** Body_import_excel_api_v1_imports_excel_post */
         Body_import_excel_api_v1_imports_excel_post: {
             /**
@@ -811,6 +1196,48 @@ export interface components {
              * Format: password
              */
             client_secret?: string | null;
+        };
+        /** CentroResultadoCreate */
+        CentroResultadoCreate: {
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+        };
+        /** CentroResultadoRead */
+        CentroResultadoRead: {
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+        };
+        /** CentroResultadoUpdate */
+        CentroResultadoUpdate: {
+            /** Codigo */
+            codigo?: string | null;
+            /** Nombre */
+            nombre?: string | null;
+            /** Orden */
+            orden?: number | null;
         };
         /** ConceptoCreate */
         ConceptoCreate: {
@@ -1125,11 +1552,142 @@ export interface components {
             /** Errores */
             errores: components["schemas"]["ImportErrorDetail"][];
         };
+        /** ImportResultadoRead */
+        ImportResultadoRead: {
+            /**
+             * Lote Id
+             * Format: uuid
+             */
+            lote_id: string;
+            /** Total Filas */
+            total_filas: number;
+            /** Filas Nuevas */
+            filas_nuevas: number;
+        };
+        /** MapeoResultadoCreate */
+        MapeoResultadoCreate: {
+            /** Cuenta Contable */
+            cuenta_contable: string;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
+            /** Centro Resultado Id */
+            centro_resultado_id?: string | null;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+        };
+        /** MapeoResultadoRead */
+        MapeoResultadoRead: {
+            /** Cuenta Contable */
+            cuenta_contable: string;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
+            /** Centro Resultado Id */
+            centro_resultado_id?: string | null;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** MapeoResultadoUpdate */
+        MapeoResultadoUpdate: {
+            /** Cuenta Contable */
+            cuenta_contable?: string | null;
+            /** Rubro Id */
+            rubro_id?: string | null;
+            /** Centro Resultado Id */
+            centro_resultado_id?: string | null;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+        };
+        /**
+         * NaturalezaRubro
+         * @enum {string}
+         */
+        NaturalezaRubro: "INGRESO" | "CONTRA_INGRESO" | "COSTO_VENTA" | "GASTO_OPERATIVO" | "INGRESO_FINANCIERO" | "GASTO_FINANCIERO" | "IMPUESTO";
+        /**
+         * OrigenAsientoResultado
+         * @enum {string}
+         */
+        OrigenAsientoResultado: "IMPORTADO" | "BASE_GASTOS" | "MANUAL" | "DISTRIBUIDO";
         /**
          * OrigenTransaccion
          * @enum {string}
          */
         OrigenTransaccion: "IMPORTADO" | "PROYECCION" | "MANUAL" | "MULTIPLE";
+        /** ReglaDistribucionCreate */
+        ReglaDistribucionCreate: {
+            /** Nombre */
+            nombre: string;
+            /** Cuenta Contable */
+            cuenta_contable?: string | null;
+            /** Rubro Id */
+            rubro_id?: string | null;
+            /** Vigente Desde */
+            vigente_desde?: string | null;
+            /** Vigente Hasta */
+            vigente_hasta?: string | null;
+            /** Lineas */
+            lineas: components["schemas"]["ReglaDistribucionLineaCreate-Input"][];
+        };
+        /** ReglaDistribucionLineaCreate */
+        "ReglaDistribucionLineaCreate-Input": {
+            /**
+             * Centro Resultado Id
+             * Format: uuid
+             */
+            centro_resultado_id: string;
+            /** Porcentaje */
+            porcentaje: number | string;
+        };
+        /** ReglaDistribucionLineaCreate */
+        "ReglaDistribucionLineaCreate-Output": {
+            /**
+             * Centro Resultado Id
+             * Format: uuid
+             */
+            centro_resultado_id: string;
+            /** Porcentaje */
+            porcentaje: string;
+        };
+        /** ReglaDistribucionRead */
+        ReglaDistribucionRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nombre */
+            nombre: string;
+            /** Cuenta Contable */
+            cuenta_contable: string | null;
+            /** Rubro Id */
+            rubro_id: string | null;
+            /** Vigente Desde */
+            vigente_desde: string | null;
+            /** Vigente Hasta */
+            vigente_hasta: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /** Lineas */
+            lineas: components["schemas"]["ReglaDistribucionLineaCreate-Output"][];
+        };
         /** ReporteCambio */
         ReporteCambio: {
             /** Fila */
@@ -1150,6 +1708,27 @@ export interface components {
             fila: number;
             /** Mensaje */
             mensaje: string;
+        };
+        /** ResultadoRubroRead */
+        ResultadoRubroRead: {
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            naturaleza: components["schemas"]["NaturalezaRubro"];
+            /** Padre Id */
+            padre_id: string | null;
+            /** Total */
+            total: string;
+            /** Por Centro */
+            por_centro: {
+                [key: string]: string;
+            };
         };
         /** ResumenCuentaRead */
         ResumenCuentaRead: {
@@ -1188,6 +1767,27 @@ export interface components {
             /** Banco Nombre */
             banco_nombre: string;
         };
+        /** ResumenGananciasPerdidasRead */
+        ResumenGananciasPerdidasRead: {
+            /** Fecha Desde */
+            fecha_desde: string | null;
+            /** Fecha Hasta */
+            fecha_hasta: string | null;
+            /** Centros */
+            centros: components["schemas"]["CentroResultadoRead"][];
+            /** Rubros */
+            rubros: components["schemas"]["ResultadoRubroRead"][];
+            /** Ingresos Netos */
+            ingresos_netos: string;
+            /** Utilidad Bruta */
+            utilidad_bruta: string;
+            /** Gastos Operativos */
+            gastos_operativos: string;
+            /** Utilidad Operativa */
+            utilidad_operativa: string;
+            /** Utilidad Neta */
+            utilidad_neta: string;
+        };
         /** ResumenGrupoRead */
         ResumenGrupoRead: {
             /** Moneda */
@@ -1210,6 +1810,57 @@ export interface components {
             cantidad_reales: number;
             /** Cantidad Proyectadas */
             cantidad_proyectadas: number;
+        };
+        /** RubroResultadoCreate */
+        RubroResultadoCreate: {
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            naturaleza: components["schemas"]["NaturalezaRubro"];
+            /** Padre Id */
+            padre_id?: string | null;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+        };
+        /** RubroResultadoRead */
+        RubroResultadoRead: {
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            naturaleza: components["schemas"]["NaturalezaRubro"];
+            /** Padre Id */
+            padre_id?: string | null;
+            /**
+             * Orden
+             * @default 0
+             */
+            orden: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+        };
+        /** RubroResultadoUpdate */
+        RubroResultadoUpdate: {
+            /** Codigo */
+            codigo?: string | null;
+            /** Nombre */
+            nombre?: string | null;
+            naturaleza?: components["schemas"]["NaturalezaRubro"] | null;
+            /** Padre Id */
+            padre_id?: string | null;
+            /** Orden */
+            orden?: number | null;
         };
         /** SaldoFinalRead */
         SaldoFinalRead: {
@@ -3760,6 +4411,781 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FlujoCajaDesgloseTipificacionesRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_centros_api_v1_ganancias_perdidas_centros_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CentroResultadoRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_centro_api_v1_ganancias_perdidas_centros_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CentroResultadoCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CentroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_centro_api_v1_ganancias_perdidas_centros__centro_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                centro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CentroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_centro_api_v1_ganancias_perdidas_centros__centro_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                centro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CentroResultadoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CentroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rubros_api_v1_ganancias_perdidas_rubros_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubroResultadoRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_rubro_api_v1_ganancias_perdidas_rubros_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RubroResultadoCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rubro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rubro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RubroResultadoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubroResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_mapeos_api_v1_ganancias_perdidas_mapeos_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapeoResultadoRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_mapeo_api_v1_ganancias_perdidas_mapeos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MapeoResultadoCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapeoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mapeo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapeoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mapeo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MapeoResultadoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapeoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_distribution_rules_api_v1_ganancias_perdidas_reglas_distribucion_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReglaDistribucionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReglaDistribucionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReglaDistribucionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regla_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReglaDistribucionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_distribution_rule_api_v1_ganancias_perdidas_reglas_distribucion__regla_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regla_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReglaDistribucionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReglaDistribucionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_template_api_v1_ganancias_perdidas_plantilla_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_asientos_api_v1_ganancias_perdidas_asientos_get: {
+        parameters: {
+            query?: {
+                fecha_desde?: string | null;
+                fecha_hasta?: string | null;
+                rubro_id?: string | null;
+                centro_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsientoResultadoRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_manual_entry_api_v1_ganancias_perdidas_asientos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsientoResultadoCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsientoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_manual_entry_api_v1_ganancias_perdidas_asientos__asiento_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asiento_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsientoResultadoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsientoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asiento_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnularAsientoResultado"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AsientoResultadoRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_ganancias_perdidas_resumen_get: {
+        parameters: {
+            query?: {
+                fecha_desde?: string | null;
+                fecha_hasta?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumenGananciasPerdidasRead"];
                 };
             };
             /** @description Validation Error */

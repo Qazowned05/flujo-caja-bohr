@@ -11,6 +11,9 @@ import { CurrenciesPage } from "./pages/currencies-admin";
 import { Dashboard } from "./pages/dashboard";
 import { ImportPage } from "./pages/import";
 import { Login } from "./pages/login";
+import { ProfitLossAdminPage } from "./pages/profit-loss-admin";
+import { ProfitLossOperationsPage } from "./pages/profit-loss-operations";
+import { ProfitLossPage } from "./pages/profit-loss";
 import { ManualMovement } from "./pages/manual-movement";
 import { Reports } from "./pages/reports";
 import { SellersPage } from "./pages/sellers-admin";
@@ -18,6 +21,7 @@ import { TipificationsAdminPage } from "./pages/tipifications-admin";
 import { TipificationsReferencePage } from "./pages/tipifications-reference";
 import { Transactions } from "./pages/transactions";
 import { UsersPage } from "./pages/users-admin";
+import { profitAndLossEnabled } from "./client/api";
 import "./styles.css";
 import { api } from "./client/api";
 
@@ -42,6 +46,7 @@ const transactionsRoute = createRoute({ getParentRoute: () => layoutRoute, path:
 const manualRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/movimiento-manual", component: ManualMovement });
 const importRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/importar", component: ImportPage });
 const reportsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/reportes", component: Reports });
+const profitLossRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/ganancias-perdidas", component: ProfitLossPage, beforeLoad: () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); } });
 const tipificationsReferenceRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/tipificaciones", component: TipificationsReferencePage });
 const usersRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/usuarios", component: UsersPage, beforeLoad: adminBeforeLoad });
 const banksRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/bancos", component: BanksPage, beforeLoad: adminBeforeLoad });
@@ -49,7 +54,9 @@ const branchesRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/a
 const sellersRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/vendedores", component: SellersPage, beforeLoad: adminBeforeLoad });
 const tipificationsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/tipificaciones", component: TipificationsAdminPage, beforeLoad: adminBeforeLoad });
 const currenciesRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/divisas", component: CurrenciesPage, beforeLoad: adminBeforeLoad });
-const router = createRouter({ routeTree: rootRoute.addChildren([loginRoute, layoutRoute.addChildren([indexRoute, transactionsRoute, manualRoute, importRoute, reportsRoute, tipificationsReferenceRoute, usersRoute, banksRoute, branchesRoute, sellersRoute, tipificationsRoute, currenciesRoute])]) });
+const profitLossAdminRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas", component: ProfitLossAdminPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
+const profitLossOperationsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas/operacion", component: ProfitLossOperationsPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
+const router = createRouter({ routeTree: rootRoute.addChildren([loginRoute, layoutRoute.addChildren([indexRoute, transactionsRoute, manualRoute, importRoute, reportsRoute, profitLossRoute, tipificationsReferenceRoute, usersRoute, banksRoute, branchesRoute, sellersRoute, tipificationsRoute, currenciesRoute, profitLossAdminRoute, profitLossOperationsRoute])]) });
 declare module "@tanstack/react-router" { interface Register { router: typeof router } }
 
 const theme = extendTheme({ fonts: { heading: "Inter, system-ui, sans-serif", body: "Inter, system-ui, sans-serif" }, colors: { brand: { 500: "#1d7a64", 600: "#176651" } } });

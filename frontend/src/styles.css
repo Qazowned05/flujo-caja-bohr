@@ -19,6 +19,15 @@ body {
   overscroll-behavior-inline: contain;
 }
 
+.sidebar-menu-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidebar-menu-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 .matrix-wrap {
   max-width: 100%;
 }

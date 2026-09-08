@@ -2,6 +2,7 @@ import type { components, paths } from "./schema";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
 const tokenKey = "flujo-caja-token";
+export const profitAndLossEnabled = import.meta.env.VITE_PROFIT_AND_LOSS_ENABLED === "true";
 
 const isTokenExpired = (token: string) => {
   try {
@@ -59,6 +60,13 @@ export type ProjectionInput = Schema["TransaccionProyeccionCreate"];
 export type MaterializeInput = Schema["TransaccionMaterializar"];
 export type TransactionUpdate = Schema["TransaccionUpdate"];
 export type Transaction = Schema["TransaccionRead"];
+export type CentroResultado = Schema["CentroResultadoRead"];
+export type RubroResultado = Schema["RubroResultadoRead"];
+export type MapeoResultado = Schema["MapeoResultadoRead"];
+export type ReglaDistribucion = Schema["ReglaDistribucionRead"];
+export type AsientoResultado = Schema["AsientoResultadoRead"];
+export type EgypSummary = JsonResponse<"/api/v1/ganancias-perdidas/resumen", "get">;
+export type EgypImportResult = JsonResponse<"/api/v1/ganancias-perdidas/importar.xlsx", "post">;
 export type TipificationBreakdown = JsonResponse<
   "/api/v1/flujo-caja/desglose-tipificaciones",
   "get"
@@ -103,8 +111,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!response.ok) {
     if (response.status === 401 && token) expireSession();
     const data: unknown = await response.json().catch(() => null);
-    const rowErrors =
-      response.status === 422 && isRowErrors(data) ? data.errores : [];
+    const rowErrors = response.status === 422
+      ? isRowErrors(data)
+        ? data.errores
+        : typeof data === "object" && data !== null && "detail" in data && isRowErrors(data.detail)
+          ? data.detail.errores
+          : []
+      : [];
     const message = rowErrors.length
       ? rowErrors
           .map((error) => `Fila ${error.fila}: ${error.mensaje}`)
@@ -291,5 +304,44 @@ export const api = {
     if (!response.ok)
       throw new ApiError(response.status, `Error ${response.status}`);
     return response.blob();
+  },
+  egypCentros: (includeInactive = false) => request<CentroResultado[]>(
+    `/api/v1/ganancias-perdidas/centros${includeInactive ? "?include_inactive=true" : ""}`,
+  ),
+  egypRubros: (includeInactive = false) => request<RubroResultado[]>(
+    `/api/v1/ganancias-perdidas/rubros${includeInactive ? "?include_inactive=true" : ""}`,
+  ),
+  egypMapeos: (includeInactive = false) => request<MapeoResultado[]>(
+    `/api/v1/ganancias-perdidas/mapeos${includeInactive ? "?include_inactive=true" : ""}`,
+  ),
+  createEgypCentro: (body: Schema["CentroResultadoCreate"]) => json("/api/v1/ganancias-perdidas/centros", "POST", body),
+  updateEgypCentro: (id: string, body: Schema["CentroResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/centros/${id}`, "PATCH", body),
+  deleteEgypCentro: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/centros/${id}`, { method: "DELETE" }),
+  createEgypRubro: (body: Schema["RubroResultadoCreate"]) => json("/api/v1/ganancias-perdidas/rubros", "POST", body),
+  updateEgypRubro: (id: string, body: Schema["RubroResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/rubros/${id}`, "PATCH", body),
+  deleteEgypRubro: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/rubros/${id}`, { method: "DELETE" }),
+  createEgypMapeo: (body: Schema["MapeoResultadoCreate"]) => json("/api/v1/ganancias-perdidas/mapeos", "POST", body),
+  updateEgypMapeo: (id: string, body: Schema["MapeoResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/mapeos/${id}`, "PATCH", body),
+  deleteEgypMapeo: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/mapeos/${id}`, { method: "DELETE" }),
+  egypReglas: (includeInactive = false) => request<ReglaDistribucion[]>(
+    `/api/v1/ganancias-perdidas/reglas-distribucion${includeInactive ? "?include_inactive=true" : ""}`,
+  ),
+  createEgypRegla: (body: Schema["ReglaDistribucionCreate"]) => json("/api/v1/ganancias-perdidas/reglas-distribucion", "POST", body),
+  updateEgypRegla: (id: string, body: Schema["ReglaDistribucionCreate"]) => json(`/api/v1/ganancias-perdidas/reglas-distribucion/${id}`, "PATCH", body),
+  deleteEgypRegla: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/reglas-distribucion/${id}`, { method: "DELETE" }),
+  egypSummary: (params: URLSearchParams) => request<EgypSummary>(`/api/v1/ganancias-perdidas/resumen?${params}`),
+  egypEntries: (params: URLSearchParams) => request<AsientoResultado[]>(`/api/v1/ganancias-perdidas/asientos?${params}`),
+  createEgypEntry: (body: Schema["AsientoResultadoCreate"]) => json("/api/v1/ganancias-perdidas/asientos", "POST", body) as Promise<AsientoResultado>,
+  updateEgypEntry: (id: string, body: Schema["AsientoResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/asientos/${id}`, "PATCH", body) as Promise<AsientoResultado>,
+  cancelEgypEntry: (id: string, motivo: string) => json(`/api/v1/ganancias-perdidas/asientos/${id}/anular`, "PATCH", { motivo }) as Promise<AsientoResultado>,
+  importEgyp: (file: File) => {
+    const form = new FormData();
+    form.append("archivo", file);
+    return request<EgypImportResult>("/api/v1/ganancias-perdidas/importar.xlsx", { method: "POST", body: form });
+  },
+  importEgypBaseGastos: (file: File) => {
+    const form = new FormData();
+    form.append("archivo", file);
+    return request<EgypImportResult>("/api/v1/ganancias-perdidas/importar-base-gastos", { method: "POST", body: form });
   },
 };

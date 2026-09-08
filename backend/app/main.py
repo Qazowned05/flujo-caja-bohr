@@ -7,6 +7,7 @@ from app.modules.categorias.routes import router as categorias_router
 from app.modules.cuentas_bancos.routes import router as cuentas_bancos_router
 from app.modules.divisas.routes import router as divisas_router
 from app.modules.flujo_caja.routes import router as flujo_caja_router
+from app.modules.ganancias_perdidas.routes import router as ganancias_perdidas_router
 from app.modules.imports.routes import router as imports_router
 from app.modules.reports.routes import router as reports_router
 from app.modules.sucursales.routes import router as sucursales_router
@@ -41,3 +42,4 @@ app.include_router(imports_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(transacciones_router, prefix="/api/v1")
 app.include_router(flujo_caja_router, prefix="/api/v1")
+app.include_router(ganancias_perdidas_router, prefix="/api/v1")

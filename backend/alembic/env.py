@@ -8,6 +8,13 @@ from app.core.database import Base
 from app.modules.categorias.models import Actividad, Concepto, Tipo  # noqa: F401
 from app.modules.cuentas_bancos.models import Banco, CuentaBancaria  # noqa: F401
 from app.modules.divisas.models import TipoCambio  # noqa: F401
+from app.modules.ganancias_perdidas.models import (  # noqa: F401
+    AsientoResultado,
+    CentroResultado,
+    LoteResultado,
+    MapeoResultado,
+    RubroResultado,
+)
 from app.modules.imports.models import ImportBatch  # noqa: F401
 from app.modules.shared.models import AuditLog  # noqa: F401
 from app.modules.sucursales.models import Sucursal  # noqa: F401
