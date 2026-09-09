@@ -4051,206 +4051,6 @@
         }
       }
     },
-    "/api/v1/ganancias-perdidas/mapeos": {
-      "get": {
-        "tags": [
-          "ganancias-perdidas"
-        ],
-        "summary": "List Mapeos",
-        "operationId": "list_mapeos_api_v1_ganancias_perdidas_mapeos_get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "include_inactive",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false,
-              "title": "Include Inactive"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MapeoResultadoRead"
-                  },
-                  "title": "Response List Mapeos Api V1 Ganancias Perdidas Mapeos Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "ganancias-perdidas"
-        ],
-        "summary": "Create Mapeo",
-        "operationId": "create_mapeo_api_v1_ganancias_perdidas_mapeos_post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MapeoResultadoCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MapeoResultadoRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/ganancias-perdidas/mapeos/{mapeo_id}": {
-      "patch": {
-        "tags": [
-          "ganancias-perdidas"
-        ],
-        "summary": "Update Mapeo",
-        "operationId": "update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "mapeo_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Mapeo Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MapeoResultadoUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MapeoResultadoRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "ganancias-perdidas"
-        ],
-        "summary": "Delete Mapeo",
-        "operationId": "delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "mapeo_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Mapeo Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MapeoResultadoRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/ganancias-perdidas/reglas-distribucion": {
       "get": {
         "tags": [
@@ -4487,52 +4287,6 @@
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportResultadoRead"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/v1/ganancias-perdidas/importar-base-gastos": {
-      "post": {
-        "tags": [
-          "ganancias-perdidas"
-        ],
-        "summary": "Import Base Gastos",
-        "operationId": "import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"
               }
             }
           },
@@ -5088,12 +4842,6 @@
             "format": "date",
             "title": "Fecha"
           },
-          "cuenta_contable": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Cuenta Contable"
-          },
           "descripcion": {
             "type": "string",
             "minLength": 1,
@@ -5178,7 +4926,6 @@
         "type": "object",
         "required": [
           "fecha",
-          "cuenta_contable",
           "descripcion",
           "rubro_id"
         ],
@@ -5197,7 +4944,14 @@
             "title": "Fecha"
           },
           "cuenta_contable": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Cuenta Contable"
           },
           "descripcion": {
@@ -5339,19 +5093,6 @@
               }
             ],
             "title": "Fecha"
-          },
-          "cuenta_contable": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cuenta Contable"
           },
           "descripcion": {
             "anyOf": [
@@ -5601,20 +5342,6 @@
           "archivo"
         ],
         "title": "Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"
-      },
-      "Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post": {
-        "properties": {
-          "archivo": {
-            "type": "string",
-            "contentMediaType": "application/octet-stream",
-            "title": "Archivo"
-          }
-        },
-        "type": "object",
-        "required": [
-          "archivo"
-        ],
-        "title": "Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"
       },
       "Body_import_excel_api_v1_imports_excel_post": {
         "properties": {
@@ -6666,198 +6393,6 @@
         ],
         "title": "ImportResultadoRead"
       },
-      "MapeoResultadoCreate": {
-        "properties": {
-          "cuenta_contable": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Cuenta Contable"
-          },
-          "rubro_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Rubro Id"
-          },
-          "centro_resultado_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Centro Resultado Id"
-          },
-          "vigente_desde": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Desde"
-          },
-          "vigente_hasta": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Hasta"
-          }
-        },
-        "type": "object",
-        "required": [
-          "cuenta_contable",
-          "rubro_id"
-        ],
-        "title": "MapeoResultadoCreate"
-      },
-      "MapeoResultadoRead": {
-        "properties": {
-          "cuenta_contable": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Cuenta Contable"
-          },
-          "rubro_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Rubro Id"
-          },
-          "centro_resultado_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Centro Resultado Id"
-          },
-          "vigente_desde": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Desde"
-          },
-          "vigente_hasta": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Hasta"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "is_active": {
-            "type": "boolean",
-            "title": "Is Active"
-          }
-        },
-        "type": "object",
-        "required": [
-          "cuenta_contable",
-          "rubro_id",
-          "id",
-          "is_active"
-        ],
-        "title": "MapeoResultadoRead"
-      },
-      "MapeoResultadoUpdate": {
-        "properties": {
-          "cuenta_contable": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cuenta Contable"
-          },
-          "rubro_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rubro Id"
-          },
-          "centro_resultado_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Centro Resultado Id"
-          },
-          "vigente_desde": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Desde"
-          },
-          "vigente_hasta": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Vigente Hasta"
-          }
-        },
-        "type": "object",
-        "title": "MapeoResultadoUpdate"
-      },
       "NaturalezaRubro": {
         "type": "string",
         "enum": [
@@ -6899,29 +6434,9 @@
             "minLength": 1,
             "title": "Nombre"
           },
-          "cuenta_contable": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cuenta Contable"
-          },
           "rubro_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid",
             "title": "Rubro Id"
           },
           "vigente_desde": {
@@ -6960,6 +6475,7 @@
         "type": "object",
         "required": [
           "nombre",
+          "rubro_id",
           "lineas"
         ],
         "title": "ReglaDistribucionCreate"
@@ -7024,27 +6540,9 @@
             "type": "string",
             "title": "Nombre"
           },
-          "cuenta_contable": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cuenta Contable"
-          },
           "rubro_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "uuid",
             "title": "Rubro Id"
           },
           "vigente_desde": {
@@ -7087,7 +6585,6 @@
         "required": [
           "id",
           "nombre",
-          "cuenta_contable",
           "rubro_id",
           "vigente_desde",
           "vigente_hasta",
@@ -7095,6 +6592,54 @@
           "lineas"
         ],
         "title": "ReglaDistribucionRead"
+      },
+      "RentabilidadCentroResultadoRead": {
+        "properties": {
+          "centro_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Centro Id"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "ingresos_brutos": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Ingresos Brutos"
+          },
+          "ingresos_netos": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Ingresos Netos"
+          },
+          "utilidad_bruta": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilidad Bruta"
+          },
+          "utilidad_neta": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilidad Neta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_id",
+          "codigo",
+          "nombre",
+          "ingresos_brutos",
+          "ingresos_netos",
+          "utilidad_bruta",
+          "utilidad_neta"
+        ],
+        "title": "RentabilidadCentroResultadoRead"
       },
       "ReporteCambio": {
         "properties": {
@@ -7322,6 +6867,11 @@
             "type": "array",
             "title": "Rubros"
           },
+          "ingresos_brutos": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Ingresos Brutos"
+          },
           "ingresos_netos": {
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
@@ -7346,6 +6896,13 @@
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Utilidad Neta"
+          },
+          "rentabilidad_por_centro": {
+            "items": {
+              "$ref": "#/components/schemas/RentabilidadCentroResultadoRead"
+            },
+            "type": "array",
+            "title": "Rentabilidad Por Centro"
           }
         },
         "type": "object",
@@ -7354,11 +6911,13 @@
           "fecha_hasta",
           "centros",
           "rubros",
+          "ingresos_brutos",
           "ingresos_netos",
           "utilidad_bruta",
           "gastos_operativos",
           "utilidad_operativa",
-          "utilidad_neta"
+          "utilidad_neta",
+          "rentabilidad_por_centro"
         ],
         "title": "ResumenGananciasPerdidasRead"
       },

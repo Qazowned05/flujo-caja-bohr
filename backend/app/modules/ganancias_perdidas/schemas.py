@@ -49,31 +49,6 @@ class RubroResultadoRead(RubroResultadoCreate):
     deleted_at: datetime | None
 
 
-class MapeoResultadoCreate(BaseModel):
-    cuenta_contable: str = Field(min_length=1, max_length=100)
-    rubro_id: uuid.UUID
-    centro_resultado_id: uuid.UUID | None = None
-    vigente_desde: date | None = None
-    vigente_hasta: date | None = None
-
-    @model_validator(mode="after")
-    def validate_dates(self):
-        if self.vigente_desde and self.vigente_hasta and self.vigente_desde > self.vigente_hasta:
-            raise ValueError("vigente_desde no puede ser posterior a vigente_hasta.")
-        return self
-
-
-class MapeoResultadoUpdate(MapeoResultadoCreate):
-    cuenta_contable: str | None = Field(default=None, min_length=1, max_length=100)
-    rubro_id: uuid.UUID | None = None
-
-
-class MapeoResultadoRead(MapeoResultadoCreate):
-    model_config = ConfigDict(from_attributes=True)
-    id: uuid.UUID
-    is_active: bool
-
-
 class ReglaDistribucionLineaCreate(BaseModel):
     centro_resultado_id: uuid.UUID
     porcentaje: Decimal = Field(gt=0, le=100)
@@ -81,16 +56,13 @@ class ReglaDistribucionLineaCreate(BaseModel):
 
 class ReglaDistribucionCreate(BaseModel):
     nombre: str = Field(min_length=1, max_length=255)
-    cuenta_contable: str | None = Field(default=None, min_length=1, max_length=100)
-    rubro_id: uuid.UUID | None = None
+    rubro_id: uuid.UUID
     vigente_desde: date | None = None
     vigente_hasta: date | None = None
     lineas: list[ReglaDistribucionLineaCreate] = Field(min_length=2)
 
     @model_validator(mode="after")
     def validate_rule(self):
-        if not self.cuenta_contable and not self.rubro_id:
-            raise ValueError("La regla requiere cuenta_contable o rubro_id.")
         if self.vigente_desde and self.vigente_hasta and self.vigente_desde > self.vigente_hasta:
             raise ValueError("vigente_desde no puede ser posterior a vigente_hasta.")
         if sum(line.porcentaje for line in self.lineas) != Decimal("100"):
@@ -104,8 +76,7 @@ class ReglaDistribucionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     nombre: str
-    cuenta_contable: str | None
-    rubro_id: uuid.UUID | None
+    rubro_id: uuid.UUID
     vigente_desde: date | None
     vigente_hasta: date | None
     is_active: bool
@@ -116,7 +87,7 @@ class AsientoResultadoRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     fecha: date
-    cuenta_contable: str
+    cuenta_contable: str | None
     descripcion: str
     documento: str | None
     moneda: str
@@ -135,7 +106,6 @@ class AsientoResultadoRead(BaseModel):
 
 class AsientoResultadoCreate(BaseModel):
     fecha: date
-    cuenta_contable: str = Field(min_length=1, max_length=100)
     descripcion: str = Field(min_length=1)
     documento: str | None = Field(default=None, max_length=255)
     moneda: str = Field(default="PEN", min_length=3, max_length=3)
@@ -154,7 +124,6 @@ class AsientoResultadoCreate(BaseModel):
 
 class AsientoResultadoUpdate(AsientoResultadoCreate):
     fecha: date | None = None
-    cuenta_contable: str | None = Field(default=None, min_length=1, max_length=100)
     descripcion: str | None = Field(default=None, min_length=1)
     moneda: str | None = Field(default=None, min_length=3, max_length=3)
     debe: Decimal | None = Field(default=None, ge=0)
@@ -176,16 +145,28 @@ class ResultadoRubroRead(BaseModel):
     por_centro: dict[str, Decimal]
 
 
+class RentabilidadCentroResultadoRead(BaseModel):
+    centro_id: uuid.UUID
+    codigo: str
+    nombre: str
+    ingresos_brutos: Decimal
+    ingresos_netos: Decimal
+    utilidad_bruta: Decimal
+    utilidad_neta: Decimal
+
+
 class ResumenGananciasPerdidasRead(BaseModel):
     fecha_desde: date | None
     fecha_hasta: date | None
     centros: list[CentroResultadoRead]
     rubros: list[ResultadoRubroRead]
+    ingresos_brutos: Decimal
     ingresos_netos: Decimal
     utilidad_bruta: Decimal
     gastos_operativos: Decimal
     utilidad_operativa: Decimal
     utilidad_neta: Decimal
+    rentabilidad_por_centro: list[RentabilidadCentroResultadoRead]
 
 
 class ImportResultadoRead(BaseModel):

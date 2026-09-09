@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse, Response
 from openpyxl import Workbook, load_workbook
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.exceptions import InvalidFileException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -61,7 +62,7 @@ def download_template(
         movements.column_dimensions["C"].number_format = "@"
     tipifications = workbook.create_sheet("Tipificaciones")
     tipifications.append(["actividad", "concepto", "tipo"])
-    for activity, concept, kind in db.execute(
+    tipification_rows = list(db.execute(
         select(Actividad.nombre, Concepto.nombre, Tipo.nombre)
         .join(Concepto, Tipo.concepto_id == Concepto.id)
         .join(Actividad, Concepto.actividad_id == Actividad.id)
@@ -71,7 +72,8 @@ def download_template(
             Tipo.is_active.is_(True),
         )
         .order_by(Actividad.nombre, Concepto.nombre, Tipo.nombre)
-    ):
+    ))
+    for activity, concept, kind in tipification_rows:
         tipifications.append([activity, concept, kind])
     branches = workbook.create_sheet("Sucursales")
     branches.append(["sucursal"])
@@ -88,6 +90,46 @@ def download_template(
         .order_by(Vendedor.nombre)
     ):
         sellers.append([seller, branch or ""])
+    lists = workbook.create_sheet("Listas tipificacion")
+    lists.append(["actividad", "concepto", "tipo"])
+    activities = sorted({row[0] for row in tipification_rows})
+    concepts = sorted({row[1] for row in tipification_rows})
+    types = sorted({row[2] for row in tipification_rows})
+    for index in range(max(len(activities), len(concepts), len(types))):
+        lists.append([
+            activities[index] if index < len(activities) else "",
+            concepts[index] if index < len(concepts) else "",
+            types[index] if index < len(types) else "",
+        ])
+    lists.sheet_state = "hidden"
+    activity_column, concept_column, type_column = ("D", "E", "F") if tipo_importacion == "PROYECCION" else ("I", "J", "K")
+    for column, source_column, length in (
+        (activity_column, "A", len(activities)),
+        (concept_column, "B", len(concepts)),
+        (type_column, "C", len(types)),
+    ):
+        validation = DataValidation(
+            type="list",
+            formula1=f"'Listas tipificacion'!${source_column}$2:${source_column}${max(2, length + 1)}",
+            allow_blank=tipo_importacion == "REAL",
+        )
+        movements.add_data_validation(validation)
+        validation.add(f"{column}2:{column}5000")
+    if tipo_importacion == "REAL":
+        branch_validation = DataValidation(
+            type="list",
+            formula1=f"'Sucursales'!$A$2:$A${max(2, branches.max_row)}",
+            allow_blank=True,
+        )
+        seller_validation = DataValidation(
+            type="list",
+            formula1=f"'Vendedores'!$A$2:$A${max(2, sellers.max_row)}",
+            allow_blank=True,
+        )
+        movements.add_data_validation(branch_validation)
+        movements.add_data_validation(seller_validation)
+        branch_validation.add("F2:F5000")
+        seller_validation.add("G2:G5000")
     output = io.BytesIO()
     workbook.save(output)
     return Response(

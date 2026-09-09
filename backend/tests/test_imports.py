@@ -124,7 +124,7 @@ def test_excel_template_includes_catalogue_reference_sheets(client_and_session):
 
     assert response.status_code == 200
     workbook = load_workbook(io.BytesIO(response.content), data_only=True)
-    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores"]
+    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores", "Listas tipificacion"]
     assert workbook["Movimientos"].column_dimensions["C"].number_format == "@"
     assert list(workbook["Tipificaciones"].values) == [
         ("actividad", "concepto", "tipo"),
@@ -132,6 +132,8 @@ def test_excel_template_includes_catalogue_reference_sheets(client_and_session):
     ]
     assert list(workbook["Sucursales"].values) == [("sucursal",), ("Lima",)]
     assert list(workbook["Vendedores"].values) == [("vendedor", "sucursal"), ("Ana", "Lima")]
+    assert workbook["Listas tipificacion"].sheet_state == "hidden"
+    assert len(workbook["Movimientos"].data_validations.dataValidation) == 5
 
 
 def test_import_accepts_native_excel_dates_and_numbers(client_and_session):

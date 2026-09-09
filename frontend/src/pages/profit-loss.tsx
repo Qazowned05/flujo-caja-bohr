@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Card, CardBody, HStack, Select, SimpleGrid, Stack, Td, Text, Tr } from "@chakra-ui/react";
+import { Box, Button, Card, CardBody, HStack, Input, Select, SimpleGrid, Stack, Table, Tbody, Td, Text, Th, Thead, Tr } from "@chakra-ui/react";
 import { api } from "../client/api";
-import { DataTable, ErrorBox, Field, Loading, Metric, PageTitle } from "../components/common";
+import { DataTable, ErrorBox, Field, Loading, Metric, PageTitle, TablePagination } from "../components/common";
 import { money } from "../lib/format";
 
 const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -12,12 +12,15 @@ const periodDates = (year: number, month: number) => ({
   from: `${year}-${pad(month)}-01`,
   to: `${year}-${pad(month)}-${pad(new Date(year, month, 0).getDate())}`,
 });
+type ProfitabilityKey = "ingresos_brutos" | "ingresos_netos" | "utilidad_bruta" | "utilidad_neta";
 
 export function ProfitLossPage() {
   const [year, setYear] = useState(currentDate.getFullYear());
   const [month, setMonth] = useState(currentDate.getMonth() + 1);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selectedRubro, setSelectedRubro] = useState<string>();
+  const [detailSearch, setDetailSearch] = useState("");
+  const [detailPage, setDetailPage] = useState(1);
   const summary = useQuery({
     queryKey: ["egyp-summary", year, month],
     queryFn: () => api.egypSummary(new URLSearchParams({ fecha_desde: periodDates(year, month).from, fecha_hasta: periodDates(year, month).to })),
@@ -51,9 +54,23 @@ export function ProfitLossPage() {
   };
   const selectedIds = selectedRubro ? descendantIds(selectedRubro) : new Set<string>();
   const allParents = [...children.keys()];
+  const matchingEntries = (entries.data ?? []).filter((entry) => {
+    const value = detailSearch.trim().toLowerCase();
+    return selectedIds.has(entry.rubro_id) && (!value || [entry.descripcion, entry.documento ?? ""].some((field) => field.toLowerCase().includes(value)));
+  });
+  const detailPageSize = 10;
+  const safeDetailPage = Math.min(detailPage, Math.max(1, Math.ceil(matchingEntries.length / detailPageSize)));
+  const detailEntries = matchingEntries.slice((safeDetailPage - 1) * detailPageSize, safeDetailPage * detailPageSize);
+  const profitabilityByCenter = new Map(summary.data?.rentabilidad_por_centro.map((item) => [item.centro_id, item]) ?? []);
+  const profitabilityRows: { label: string; key: ProfitabilityKey; total: string }[] = summary.data ? [
+    { label: "INGRESOS BRUTOS", key: "ingresos_brutos", total: summary.data.ingresos_brutos },
+    { label: "INGRESOS NETOS", key: "ingresos_netos", total: summary.data.ingresos_netos },
+    { label: "UTILIDAD BRUTA", key: "utilidad_bruta", total: summary.data.utilidad_bruta },
+    { label: "UTILIDAD NETA", key: "utilidad_neta", total: summary.data.utilidad_neta },
+  ] : [];
   return <Stack spacing="6">
-    <PageTitle title="Ganancias y pérdidas" description="Resultado contable trazable por rubro y línea de negocio." />
-    <Card><CardBody><SimpleGrid columns={{ base: 1, md: 2 }} spacing="4"><Field label="Año"><Select value={year} onChange={(event) => setYear(Number(event.target.value))}>{Array.from({ length: 5 }, (_, index) => currentDate.getFullYear() - 2 + index).map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field><Field label="Mes"><Select value={month} onChange={(event) => setMonth(Number(event.target.value))}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</Select></Field></SimpleGrid></CardBody></Card>
+    <PageTitle title="Ganancias y pérdidas" description="Consulta el resultado del período, abre un rubro y revisa los asientos que lo componen." />
+    <Card><CardBody><SimpleGrid columns={{ base: 1, md: 3 }} spacing="4"><Field label="Año"><Select value={year} onChange={(event) => setYear(Number(event.target.value))}>{Array.from({ length: 5 }, (_, index) => currentDate.getFullYear() - 2 + index).map((item) => <option key={item} value={item}>{item}</option>)}</Select></Field><Field label="Mes"><Select value={month} onChange={(event) => setMonth(Number(event.target.value))}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</Select></Field><Box pt={{ base: 0, md: 8 }}><Text fontSize="sm" color="gray.500">Haz clic en un rubro para ver su sustento.</Text></Box></SimpleGrid></CardBody></Card>
     {summary.isLoading && <Loading />}
     {summary.isError && <ErrorBox error={summary.error} />}
     {summary.data && <>
@@ -64,14 +81,13 @@ export function ProfitLossPage() {
         <Card><CardBody><Metric label="Utilidad operativa" value={money(summary.data.utilidad_operativa, "PEN")} /></CardBody></Card>
         <Card><CardBody><Metric label="Utilidad neta" value={money(summary.data.utilidad_neta, "PEN")} color={Number(summary.data.utilidad_neta) < 0 ? "red.600" : "green.600"} /></CardBody></Card>
       </SimpleGrid>
-      <HStack><Button size="sm" onClick={() => setExpanded(new Set(allParents))}>Expandir todo</Button><Button size="sm" variant="outline" onClick={() => setExpanded(new Set())}>Contraer todo</Button></HStack>
-      <DataTable headers={["Rubro", ...summary.data.centros.map((center) => center.nombre), "Total"]} empty="No hay asientos para el período.">
-        {visibleRows.map((rubro) => {
+       <HStack justify="space-between" flexWrap="wrap"><Text fontSize="sm" color="gray.500">Los importes positivos aumentan el resultado; los negativos lo reducen.</Text><HStack><Button size="sm" onClick={() => setExpanded(new Set(allParents))}>Expandir todo</Button><Button size="sm" variant="outline" onClick={() => setExpanded(new Set())}>Contraer todo</Button></HStack></HStack>
+       <Card><CardBody p="0"><Box className="table-wrap matrix-wrap"><Table size="sm" variant="simple" className="matrix-table"><Thead><Tr><Th minW="300px" className="matrix-label-cell">Rubro de resultado</Th>{summary.data.centros.map((center) => <Th key={center.id} isNumeric whiteSpace="nowrap">{center.nombre}</Th>)}<Th isNumeric className="matrix-total-cell">Total</Th></Tr></Thead><Tbody>{visibleRows.map((rubro) => {
           const hasChildren = children.has(rubro.rubro_id);
-          return <Tr key={rubro.rubro_id}><Td><HStack pl={rubro.padre_id ? "5" : "0"}><Button size="xs" visibility={hasChildren ? "visible" : "hidden"} onClick={() => setExpanded((current) => { const next = new Set(current); next.has(rubro.rubro_id) ? next.delete(rubro.rubro_id) : next.add(rubro.rubro_id); return next; })}>{expanded.has(rubro.rubro_id) ? "−" : "+"}</Button><Button size="sm" variant="link" color="inherit" fontWeight={rubro.padre_id ? "normal" : "bold"} onClick={() => setSelectedRubro(rubro.rubro_id)}>{rubro.nombre}</Button></HStack></Td>{summary.data.centros.map((center) => <Td key={center.id} isNumeric>{money(rubro.por_centro[center.codigo] ?? 0, "PEN")}</Td>)}<Td isNumeric fontWeight="semibold">{money(rubro.total, "PEN")}</Td></Tr>;
-        })}
-      </DataTable>
-      {selectedRubro && <Card><CardBody><Stack spacing="3"><HStack justify="space-between"><Text fontWeight="semibold">Asientos que componen el rubro</Text><Button size="sm" onClick={() => setSelectedRubro(undefined)}>Cerrar detalle</Button></HStack>{entries.isLoading && <Loading />}{entries.isError && <ErrorBox error={entries.error} />}{entries.data && <DataTable headers={["Fecha", "Cuenta", "Descripción", "Documento", "Centro", "Debe", "Haber"]} empty="No hay asientos para este rubro.">{entries.data.filter((entry) => selectedIds.has(entry.rubro_id)).map((entry) => <Tr key={entry.id}><Td>{entry.fecha}</Td><Td>{entry.cuenta_contable}</Td><Td>{entry.descripcion}</Td><Td>{entry.documento ?? "-"}</Td><Td>{summary.data.centros.find((center) => center.id === entry.centro_resultado_id)?.nombre ?? "Sin centro"}</Td><Td isNumeric>{money(entry.debe, entry.moneda)}</Td><Td isNumeric>{money(entry.haber, entry.moneda)}</Td></Tr>)}</DataTable>}</Stack></CardBody></Card>}
+          const rowClass = hasChildren ? "matrix-activity-row" : "matrix-concept-row";
+          return <Tr key={rubro.rubro_id} className={rowClass}><Td className="matrix-label-cell"><HStack pl={rubro.padre_id ? "8" : "0"}><Button size="xs" variant="ghost" visibility={hasChildren ? "visible" : "hidden"} onClick={() => setExpanded((current) => { const next = new Set(current); next.has(rubro.rubro_id) ? next.delete(rubro.rubro_id) : next.add(rubro.rubro_id); return next; })}>{expanded.has(rubro.rubro_id) ? "−" : "+"}</Button><Button size="sm" variant="link" color="inherit" fontWeight={hasChildren ? "bold" : "normal"} onClick={() => { setSelectedRubro(rubro.rubro_id); setDetailSearch(""); setDetailPage(1); }}>{rubro.nombre}</Button></HStack></Td>{summary.data.centros.map((center) => <Td key={center.id} isNumeric whiteSpace="nowrap" color={Number(rubro.por_centro[center.codigo] ?? 0) < 0 ? "red.600" : Number(rubro.por_centro[center.codigo] ?? 0) > 0 ? "green.600" : "gray.500"}>{money(rubro.por_centro[center.codigo] ?? 0, "PEN")}</Td>)}<Td isNumeric whiteSpace="nowrap" fontWeight="semibold" className="matrix-total-cell" color={Number(rubro.total) < 0 ? "red.700" : Number(rubro.total) > 0 ? "green.700" : "gray.600"}>{money(rubro.total, "PEN")}</Td></Tr>;
+        })}{profitabilityRows.map((metric) => <Tr key={metric.key} className={metric.key === "utilidad_neta" ? "matrix-net-operating-row" : metric.key === "utilidad_bruta" ? "matrix-gross-operating-row" : "matrix-activity-row"}><Td className="matrix-label-cell" fontWeight="bold">{metric.label}</Td>{summary.data.centros.map((center) => { const value = profitabilityByCenter.get(center.id)?.[metric.key]; return <Td key={center.id} isNumeric whiteSpace="nowrap" color={metric.key.includes("utilidad") ? Number(value ?? 0) < 0 ? "red.600" : "green.600" : undefined}>{money(value ?? 0, "PEN")}</Td>; })}<Td isNumeric whiteSpace="nowrap" className="matrix-total-cell" fontWeight="bold">{money(metric.total, "PEN")}</Td></Tr>)}</Tbody></Table></Box>{visibleRows.length === 0 && <Text p="6" color="gray.500">No hay asientos para el período.</Text>}</CardBody></Card>
+       {selectedRubro && <Card><CardBody><Stack spacing="4"><HStack justify="space-between" flexWrap="wrap"><Box><Text fontWeight="semibold">Detalle del rubro</Text><Text fontSize="sm" color="gray.500">Busca y revisa los asientos que sustentan el total.</Text></Box><Button size="sm" onClick={() => setSelectedRubro(undefined)}>Cerrar detalle</Button></HStack><Input value={detailSearch} onChange={(event) => { setDetailSearch(event.target.value); setDetailPage(1); }} placeholder="Buscar por descripción o documento" />{entries.isLoading && <Loading />}{entries.isError && <ErrorBox error={entries.error} />}{entries.data && <><DataTable headers={["Fecha", "Descripción", "Documento", "Centro", "Debe", "Haber"]} empty="No hay asientos que coincidan.">{detailEntries.map((entry) => <Tr key={entry.id}><Td>{entry.fecha}</Td><Td>{entry.descripcion}</Td><Td>{entry.documento ?? "-"}</Td><Td>{summary.data.centros.find((center) => center.id === entry.centro_resultado_id)?.nombre ?? "Sin centro"}</Td><Td isNumeric>{money(entry.debe, entry.moneda)}</Td><Td isNumeric>{money(entry.haber, entry.moneda)}</Td></Tr>)}</DataTable><TablePagination total={matchingEntries.length} page={safeDetailPage} pageSize={detailPageSize} onPageChange={setDetailPage} /></>}</Stack></CardBody></Card>}
     </>}
   </Stack>;
 }

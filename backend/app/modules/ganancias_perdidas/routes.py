@@ -4,7 +4,6 @@ from decimal import Decimal
 from io import BytesIO
 from typing import Annotated, Any
 
-import xlrd
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook, load_workbook
@@ -18,7 +17,6 @@ from app.modules.ganancias_perdidas.models import (
     AsientoResultado,
     CentroResultado,
     LoteResultado,
-    MapeoResultado,
     NaturalezaRubro,
     OrigenAsientoResultado,
     ReglaDistribucion,
@@ -34,11 +32,9 @@ from app.modules.ganancias_perdidas.schemas import (
     CentroResultadoRead,
     CentroResultadoUpdate,
     ImportResultadoRead,
-    MapeoResultadoCreate,
-    MapeoResultadoRead,
-    MapeoResultadoUpdate,
     ReglaDistribucionCreate,
     ReglaDistribucionRead,
+    RentabilidadCentroResultadoRead,
     ResultadoRubroRead,
     ResumenGananciasPerdidasRead,
     RubroResultadoCreate,
@@ -54,7 +50,6 @@ router = APIRouter(prefix="/ganancias-perdidas", tags=["ganancias-perdidas"])
 ZERO = Decimal("0")
 TEMPLATE_HEADERS = [
     "fecha",
-    "cuenta_contable",
     "descripcion",
     "documento",
     "moneda",
@@ -306,87 +301,6 @@ def delete_rubro(
     return record
 
 
-@router.get(
-    "/mapeos", response_model=list[MapeoResultadoRead], dependencies=[Depends(require_enabled)]
-)
-def list_mapeos(
-    include_inactive: bool = False,
-    _: Annotated[User, Depends(require_admin)] = None,
-    db: Annotated[Session, Depends(get_db)] = None,
-):
-    return list(
-        db.scalars(
-            active_statement(MapeoResultado, include_inactive).order_by(
-                MapeoResultado.cuenta_contable
-            )
-        )
-    )
-
-
-def validate_mapping_references(db: Session, values: dict[str, Any]) -> None:
-    require_active(db, RubroResultado, values["rubro_id"], "Rubro")
-    if values.get("centro_resultado_id"):
-        require_active(db, CentroResultado, values["centro_resultado_id"], "Linea de negocio")
-
-
-@router.post(
-    "/mapeos",
-    response_model=MapeoResultadoRead,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_enabled)],
-)
-def create_mapeo(
-    data: MapeoResultadoCreate,
-    user: Annotated[User, Depends(require_admin)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    values = data.model_dump()
-    validate_mapping_references(db, values)
-    record = MapeoResultado(**values)
-    db.add(record)
-    db.flush()
-    save_change(db, user, record, AuditAction.CREATE, values)
-    return record
-
-
-@router.patch(
-    "/mapeos/{mapeo_id}", response_model=MapeoResultadoRead, dependencies=[Depends(require_enabled)]
-)
-def update_mapeo(
-    mapeo_id: uuid.UUID,
-    data: MapeoResultadoUpdate,
-    user: Annotated[User, Depends(require_admin)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    record = require_record(db, MapeoResultado, mapeo_id)
-    values = data.model_dump(exclude_unset=True)
-    merged = {
-        "rubro_id": values.get("rubro_id", record.rubro_id),
-        "centro_resultado_id": values.get("centro_resultado_id", record.centro_resultado_id),
-    }
-    validate_mapping_references(db, merged)
-    changes = apply_update(record, values)
-    if changes:
-        save_change(db, user, record, AuditAction.UPDATE, changes)
-    return record
-
-
-@router.delete(
-    "/mapeos/{mapeo_id}", response_model=MapeoResultadoRead, dependencies=[Depends(require_enabled)]
-)
-def delete_mapeo(
-    mapeo_id: uuid.UUID,
-    user: Annotated[User, Depends(require_admin)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    record = require_active(db, MapeoResultado, mapeo_id, "Mapeo")
-    record.is_active, record.deleted_at = False, datetime.now(UTC)
-    save_change(
-        db, user, record, AuditAction.SOFT_DELETE, {"is_active": {"old": True, "new": False}}
-    )
-    return record
-
-
 def validate_distribution(db: Session, values: ReglaDistribucionCreate) -> None:
     if values.rubro_id:
         require_active(db, RubroResultado, values.rubro_id, "Rubro")
@@ -459,6 +373,9 @@ def update_distribution_rule(
         {"centro_resultado_id": str(line.centro_resultado_id), "porcentaje": str(line.porcentaje)}
         for line in record.lineas
     ]
+    # Flush orphaned lines before inserting replacements to preserve the unique rule/center pair.
+    record.lineas.clear()
+    db.flush()
     record.lineas = [ReglaDistribucionLinea(**line.model_dump()) for line in data.lineas]
     changes["lineas"] = {"old": previous_lines, "new": data.model_dump(mode="json")["lineas"]}
     save_change(db, user, record, AuditAction.UPDATE, changes)
@@ -494,7 +411,6 @@ def download_template(
     sheet.append(
         [
             "2026-06-30",
-            "621101",
             "Planilla junio",
             "PL-060001",
             "PEN",
@@ -536,42 +452,19 @@ def download_template(
             .order_by(RubroResultado.orden)
         )
     )
-    mappings = list(
-        db.scalars(
-            select(MapeoResultado)
-            .where(MapeoResultado.is_active.is_(True))
-            .order_by(MapeoResultado.cuenta_contable)
-        )
-    )
-    centers_sheet = workbook.create_sheet("Centros")
+    centers_sheet = workbook.create_sheet("Lineas de negocio")
     centers_sheet.append(["codigo", "nombre"])
     for center in centers:
         centers_sheet.append([center.codigo, center.nombre])
     rubros_sheet = workbook.create_sheet("Rubros")
-    rubros_sheet.append(["codigo", "nombre", "naturaleza"])
-    for rubro in rubros:
-        rubros_sheet.append([rubro.codigo, rubro.nombre, rubro.naturaleza.value])
-    mappings_sheet = workbook.create_sheet("Mapeos")
-    mappings_sheet.append(
-        ["cuenta_contable", "rubro_codigo", "centro_codigo", "vigente_desde", "vigente_hasta"]
-    )
-    center_by_id = {center.id: center.codigo for center in centers}
+    rubros_sheet.append(["codigo", "nombre", "naturaleza", "rubro_padre"])
     rubro_by_id = {rubro.id: rubro.codigo for rubro in rubros}
-    for mapping in mappings:
-        mappings_sheet.append(
-            [
-                mapping.cuenta_contable,
-                rubro_by_id.get(mapping.rubro_id, ""),
-                center_by_id.get(mapping.centro_resultado_id, ""),
-                mapping.vigente_desde,
-                mapping.vigente_hasta,
-            ]
-        )
+    for rubro in rubros:
+        rubros_sheet.append([rubro.codigo, rubro.nombre, rubro.naturaleza.value, rubro_by_id.get(rubro.padre_id, "")])
     rules_sheet = workbook.create_sheet("Reglas distribucion")
     rules_sheet.append(
         [
             "regla",
-            "cuenta_contable",
             "rubro",
             "centro",
             "porcentaje",
@@ -584,42 +477,42 @@ def download_template(
             rules_sheet.append(
                 [
                     rule.nombre,
-                    rule.cuenta_contable or "",
                     rubro_by_id.get(rule.rubro_id, ""),
-                    center_by_id.get(line.centro_resultado_id, ""),
+                    next((center.codigo for center in centers if center.id == line.centro_resultado_id), ""),
                     line.porcentaje,
                     rule.vigente_desde,
                     rule.vigente_hasta,
                 ]
             )
-    instructions = workbook.create_sheet("Instrucciones")
+    instructions = workbook.create_sheet("Guia de tipificacion")
     instructions.append(["Campo", "Uso"])
     instructions.append(
         [
             "centro_codigo",
-            "Opcional. Si se informa, tiene prioridad y no se aplica regla de distribucion.",
+            "Obligatorio, excepto cuando exista una regla de distribucion vigente para el rubro.",
         ]
     )
     instructions.append(
-        ["rubro_codigo", "Opcional solo si existe un mapeo activo para la cuenta y fecha."]
+        ["rubro_codigo", "Obligatorio. Selecciona el codigo en la lista desplegable."]
     )
     instructions.append(
         ["debe / haber", "No pueden ser negativos; por lo menos uno debe ser mayor que cero."]
     )
     instructions.append(
-        ["Guias", "Las hojas Centros, Rubros, Mapeos y Reglas distribucion son solo referencia."]
+        ["Tipificacion", "Ventas van en Haber; descuentos, costos y gastos van en Debe."]
     )
+    instructions.append(["Guias", "Las hojas Lineas de negocio, Rubros y Reglas distribucion son solo referencia."])
     center_validation = DataValidation(
-        type="list", formula1=f"'Centros'!$A$2:$A${max(2, len(centers) + 1)}", allow_blank=True
+        type="list", formula1=f"'Lineas de negocio'!$A$2:$A${max(2, len(centers) + 1)}", allow_blank=True
     )
     rubro_validation = DataValidation(
-        type="list", formula1=f"'Rubros'!$A$2:$A${max(2, len(rubros) + 1)}", allow_blank=True
+        type="list", formula1=f"'Rubros'!$A$2:$A${max(2, len(rubros) + 1)}", allow_blank=False
     )
     currency_validation = DataValidation(type="list", formula1='"PEN,USD"', allow_blank=False)
     for validation, target in (
-        (center_validation, "H2:H5000"),
-        (rubro_validation, "I2:I5000"),
-        (currency_validation, "E2:E5000"),
+        (center_validation, "G2:G5000"),
+        (rubro_validation, "H2:H5000"),
+        (currency_validation, "D2:D5000"),
     ):
         sheet.add_data_validation(validation)
         validation.add(target)
@@ -636,14 +529,14 @@ def download_template(
 def resolve_row(
     db: Session, values: dict[str, Any], row_number: int
 ) -> tuple[RubroResultado, CentroResultado | None]:
-    rubro = None
-    centro = None
-    if values["rubro_codigo"]:
-        rubro = db.scalar(
-            select(RubroResultado).where(
-                RubroResultado.codigo == values["rubro_codigo"], RubroResultado.is_active.is_(True)
-            )
+    if not values["rubro_codigo"]:
+        raise ValueError(f"Fila {row_number}: rubro_codigo es obligatorio.")
+    rubro = db.scalar(
+        select(RubroResultado).where(
+            RubroResultado.codigo == values["rubro_codigo"], RubroResultado.is_active.is_(True)
         )
+    )
+    centro = None
     if values["centro_codigo"]:
         centro = db.scalar(
             select(CentroResultado).where(
@@ -652,35 +545,20 @@ def resolve_row(
             )
         )
     if not rubro:
-        mapping = db.scalar(
-            select(MapeoResultado)
-            .where(
-                MapeoResultado.cuenta_contable == values["cuenta_contable"],
-                MapeoResultado.is_active.is_(True),
-            )
-            .order_by(MapeoResultado.vigente_desde.desc())
-        )
-        if (
-            mapping
-            and (not mapping.vigente_desde or mapping.vigente_desde <= values["fecha"])
-            and (not mapping.vigente_hasta or mapping.vigente_hasta >= values["fecha"])
-        ):
-            rubro = require_active(db, RubroResultado, mapping.rubro_id, "Rubro")
-            if not centro and mapping.centro_resultado_id:
-                centro = require_active(
-                    db, CentroResultado, mapping.centro_resultado_id, "Linea de negocio"
-                )
-    if not rubro:
-        raise ValueError(
-            f"Fila {row_number}: rubro_codigo no existe y no hay mapeo activo para la cuenta."
-        )
+        raise ValueError(f"Fila {row_number}: rubro_codigo no existe o esta inactivo.")
     if values["centro_codigo"] and not centro:
         raise ValueError(f"Fila {row_number}: centro_codigo no existe o esta inactivo.")
+    if not centro and not active_distribution_rule(
+        db, values["fecha"], rubro.id
+    ):
+        raise ValueError(
+            f"Fila {row_number}: centro_codigo es obligatorio si no existe una regla de distribucion vigente."
+        )
     return rubro, centro
 
 
 def active_distribution_rule(
-    db: Session, entry_date: date, account: str, rubro_id: uuid.UUID
+    db: Session, entry_date: date, rubro_id: uuid.UUID
 ) -> ReglaDistribucion | None:
     rules = list(
         db.scalars(
@@ -692,12 +570,10 @@ def active_distribution_rule(
                 (ReglaDistribucion.vigente_hasta.is_(None))
                 | (ReglaDistribucion.vigente_hasta >= entry_date),
             )
-            .order_by(ReglaDistribucion.cuenta_contable.desc())
+            .order_by(ReglaDistribucion.nombre)
         )
     )
-    return next((rule for rule in rules if rule.cuenta_contable == account), None) or next(
-        (rule for rule in rules if rule.cuenta_contable is None and rule.rubro_id == rubro_id), None
-    )
+    return next((rule for rule in rules if rule.rubro_id == rubro_id), None)
 
 
 def create_entry(
@@ -714,7 +590,6 @@ def create_entry(
         key: values[key]
         for key in (
             "fecha",
-            "cuenta_contable",
             "descripcion",
             "documento",
             "moneda",
@@ -736,7 +611,7 @@ def create_entry(
         )
         db.add(entry)
         return entry
-    rule = active_distribution_rule(db, values["fecha"], values["cuenta_contable"], rubro.id)
+    rule = active_distribution_rule(db, values["fecha"], rubro.id)
     if not rule:
         entry = AsientoResultado(
             **entry_values,
@@ -795,51 +670,6 @@ def create_entry(
     return origin_entry
 
 
-def parse_legacy_date(value: Any, datemode: int | None = None) -> date:
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
-    if isinstance(value, (int, float)) and datemode is not None:
-        return xlrd.xldate_as_datetime(value, datemode).date()
-    for format_string in ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d"):
-        try:
-            return datetime.strptime(str(value).strip(), format_string).date()
-        except ValueError:
-            continue
-    raise ValueError("fecha invalida.")
-
-
-def legacy_rows(content: bytes, filename: str) -> list[tuple[int, tuple[Any, ...], int | None]]:
-    if filename.lower().endswith(".xlsx"):
-        workbook = load_workbook(BytesIO(content), read_only=True, data_only=True)
-        if "BASE GASTOS" not in workbook.sheetnames:
-            raise ValueError("Falta la hoja BASE GASTOS.")
-        return [
-            (number, row, None)
-            for number, row in enumerate(
-                workbook["BASE GASTOS"].iter_rows(min_row=7, values_only=True), start=7
-            )
-        ]
-    if filename.lower().endswith(".xls"):
-        workbook = xlrd.open_workbook(file_contents=content)
-        try:
-            sheet = workbook.sheet_by_name("BASE GASTOS")
-        except xlrd.biffh.XLRDError as exc:
-            raise ValueError("Falta la hoja BASE GASTOS.") from exc
-        return [
-            (index + 1, tuple(sheet.row_values(index)), workbook.datemode)
-            for index in range(6, sheet.nrows)
-        ]
-    raise ValueError("El archivo debe ser .xls o .xlsx.")
-
-
-def legacy_account(value: Any) -> str:
-    if isinstance(value, float) and value.is_integer():
-        return str(int(value))
-    return str(value or "").strip()
-
-
 @router.post(
     "/importar.xlsx",
     response_model=ImportResultadoRead,
@@ -892,7 +722,6 @@ async def import_asientos(
             parsed.append(
                 {
                     "fecha": entry_date,
-                    "cuenta_contable": str(raw["cuenta_contable"] or "").strip(),
                     "descripcion": str(raw["descripcion"] or "").strip(),
                     "documento": str(raw["documento"] or "").strip() or None,
                     "moneda": str(raw["moneda"] or "PEN").strip().upper(),
@@ -905,11 +734,10 @@ async def import_asientos(
                 }
             )
             if (
-                not parsed[-1]["cuenta_contable"]
-                or not parsed[-1]["descripcion"]
+                not parsed[-1]["descripcion"]
                 or len(parsed[-1]["moneda"]) != 3
             ):
-                raise ValueError("cuenta_contable, descripcion y moneda ISO son obligatorios.")
+                raise ValueError("descripcion y moneda ISO son obligatorios.")
             resolve_row(db, parsed[-1], row_number)
         except (ValueError, TypeError, ArithmeticError) as exc:
             errors.append({"fila": row_number, "mensaje": str(exc)})
@@ -949,94 +777,6 @@ async def import_asientos(
 
 
 @router.post(
-    "/importar-base-gastos",
-    response_model=ImportResultadoRead,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_enabled)],
-)
-async def import_base_gastos(
-    archivo: Annotated[UploadFile, File(...)],
-    user: Annotated[User, Depends(require_admin)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    filename = archivo.filename or "base_gastos.xlsx"
-    try:
-        source_rows = legacy_rows(await archivo.read(), filename)
-    except (ValueError, xlrd.biffh.XLRDError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
-        ) from exc
-    parsed: list[dict[str, Any]] = []
-    errors: list[dict[str, object]] = []
-    for row_number, row, datemode in source_rows:
-        if not any(value not in (None, "") for value in row):
-            continue
-        try:
-            account = legacy_account(row[1] if len(row) > 1 else None)
-            center_code = str(row[0] if len(row) > 0 else "").strip().split()[0]
-            values = {
-                "fecha": parse_legacy_date(row[3] if len(row) > 3 else None, datemode),
-                "cuenta_contable": account,
-                "descripcion": str(
-                    (row[10] if len(row) > 10 else None)
-                    or (row[11] if len(row) > 11 else None)
-                    or (row[2] if len(row) > 2 else "")
-                ).strip(),
-                "documento": str((row[7] if len(row) > 7 else None) or "").strip() or None,
-                "moneda": "PEN",
-                "debe": Decimal(str((row[13] if len(row) > 13 else 0) or 0)),
-                "haber": Decimal(str((row[14] if len(row) > 14 else 0) or 0)),
-                "centro_codigo": center_code,
-                "rubro_codigo": "",
-                "observaciones": f"Importado desde BASE GASTOS, fila {row_number}.",
-                "numero_fila": row_number,
-            }
-            if (
-                not account
-                or not values["descripcion"]
-                or (values["debe"] == ZERO and values["haber"] == ZERO)
-            ):
-                raise ValueError("cuenta, descripcion y debe/haber son obligatorios.")
-            resolve_row(db, values, row_number)
-            parsed.append(values)
-        except (ValueError, TypeError, ArithmeticError, IndexError) as exc:
-            errors.append({"fila": row_number, "mensaje": str(exc)})
-    if errors:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"errores": errors}
-        )
-    if not parsed:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="No hay filas validas."
-        )
-    batch = LoteResultado(archivo_nombre=filename, usuario_id=user.id, total_filas=len(parsed))
-    db.add(batch)
-    db.flush()
-    for row in parsed:
-        rubro, center = resolve_row(db, row, row["numero_fila"])
-        create_entry(
-            db,
-            user,
-            row,
-            rubro,
-            center,
-            OrigenAsientoResultado.BASE_GASTOS,
-            batch.id,
-            row["numero_fila"],
-        )
-    log_audit(
-        db,
-        user=user,
-        table=batch.__tablename__,
-        record_id=batch.id,
-        action=AuditAction.CREATE,
-        changes={"archivo_nombre": filename, "origen": OrigenAsientoResultado.BASE_GASTOS.value},
-    )
-    db.commit()
-    return ImportResultadoRead(lote_id=batch.id, total_filas=len(parsed), filas_nuevas=len(parsed))
-
-
-@router.post(
     "/asientos",
     response_model=AsientoResultadoRead,
     status_code=status.HTTP_201_CREATED,
@@ -1053,6 +793,11 @@ def create_manual_entry(
         if data.centro_resultado_id
         else None
     )
+    if not centro and not active_distribution_rule(db, data.fecha, rubro.id):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La linea de negocio es obligatoria si no existe una regla de distribucion vigente.",
+        )
     record = create_entry(db, user, data.model_dump(), rubro, centro, OrigenAsientoResultado.MANUAL)
     db.flush()
     log_audit(
@@ -1094,9 +839,14 @@ def update_manual_entry(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Debe u haber es obligatorio."
         )
-    require_active(db, RubroResultado, merged["rubro_id"], "Rubro")
+    rubro = require_active(db, RubroResultado, merged["rubro_id"], "Rubro")
     if merged["centro_resultado_id"]:
         require_active(db, CentroResultado, merged["centro_resultado_id"], "Linea de negocio")
+    elif not active_distribution_rule(db, merged["fecha"], rubro.id):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="La linea de negocio es obligatoria si no existe una regla de distribucion vigente.",
+        )
     changes = apply_update(record, values)
     if changes:
         record.updated_by_id = user.id
@@ -1195,7 +945,7 @@ def summary(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="fecha_desde no puede ser posterior a fecha_hasta.",
         )
-    centers = list(
+    all_centers = list(
         db.scalars(
             select(CentroResultado)
             .where(CentroResultado.is_active.is_(True))
@@ -1211,10 +961,14 @@ def summary(
     )
     by_id = {rubro.id: rubro for rubro in rubros}
     totals = {
-        rubro.id: {"total": ZERO, "centers": {center.codigo: ZERO for center in centers}}
+        rubro.id: {"total": ZERO, "centers": {center.codigo: ZERO for center in all_centers}}
         for rubro in rubros
     }
     total_by_nature = {nature: ZERO for nature in NaturalezaRubro}
+    totals_by_center = {
+        center.id: {nature: ZERO for nature in NaturalezaRubro}
+        for center in all_centers
+    }
     statement = select(AsientoResultado).where(
         AsientoResultado.is_active.is_(True), AsientoResultado.es_resultado.is_(True)
     )
@@ -1222,19 +976,24 @@ def summary(
         statement = statement.where(AsientoResultado.fecha >= fecha_desde)
     if fecha_hasta:
         statement = statement.where(AsientoResultado.fecha <= fecha_hasta)
-    center_ids = {center.id: center.codigo for center in centers}
+    center_ids = {center.id: center.codigo for center in all_centers}
+    used_center_ids: set[uuid.UUID] = set()
     for entry in db.scalars(statement):
         rubro = by_id.get(entry.rubro_id)
         if not rubro:
             continue
         amount = signed_amount(entry)
         total_by_nature[rubro.naturaleza] += amount
+        if entry.centro_resultado_id in totals_by_center:
+            totals_by_center[entry.centro_resultado_id][rubro.naturaleza] += amount
+            used_center_ids.add(entry.centro_resultado_id)
         current: RubroResultado | None = rubro
         while current:
             totals[current.id]["total"] += amount
             if entry.centro_resultado_id in center_ids:
                 totals[current.id]["centers"][center_ids[entry.centro_resultado_id]] += amount
             current = by_id.get(current.padre_id) if current.padre_id else None
+    centers = [center for center in all_centers if center.id in used_center_ids]
     result_rows = [
         ResultadoRubroRead(
             rubro_id=rubro.id,
@@ -1247,6 +1006,7 @@ def summary(
         )
         for rubro in rubros
     ]
+    ingresos_brutos = total_by_nature[NaturalezaRubro.INGRESO]
     ingresos = (
         total_by_nature[NaturalezaRubro.INGRESO]
         + total_by_nature[NaturalezaRubro.INGRESO_FINANCIERO]
@@ -1257,11 +1017,35 @@ def summary(
     utilidad_bruta = ingresos_netos + total_by_nature[NaturalezaRubro.COSTO_VENTA]
     gastos_operativos = total_by_nature[NaturalezaRubro.GASTO_OPERATIVO]
     utilidad_operativa = utilidad_bruta + gastos_operativos
+    rentabilidad_por_centro = []
+    for center in centers:
+        values = totals_by_center[center.id]
+        ingresos_netos_centro = values[NaturalezaRubro.INGRESO] + values[NaturalezaRubro.CONTRA_INGRESO]
+        utilidad_bruta_centro = ingresos_netos_centro + values[NaturalezaRubro.COSTO_VENTA]
+        utilidad_neta_centro = (
+            values[NaturalezaRubro.INGRESO]
+            + values[NaturalezaRubro.INGRESO_FINANCIERO]
+            + values[NaturalezaRubro.CONTRA_INGRESO]
+            + values[NaturalezaRubro.COSTO_VENTA]
+            + values[NaturalezaRubro.GASTO_OPERATIVO]
+            + values[NaturalezaRubro.GASTO_FINANCIERO]
+            + values[NaturalezaRubro.IMPUESTO]
+        )
+        rentabilidad_por_centro.append(RentabilidadCentroResultadoRead(
+            centro_id=center.id,
+            codigo=center.codigo,
+            nombre=center.nombre,
+            ingresos_brutos=values[NaturalezaRubro.INGRESO],
+            ingresos_netos=ingresos_netos_centro,
+            utilidad_bruta=utilidad_bruta_centro,
+            utilidad_neta=utilidad_neta_centro,
+        ))
     return ResumenGananciasPerdidasRead(
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         centros=centers,
         rubros=result_rows,
+        ingresos_brutos=ingresos_brutos,
         ingresos_netos=ingresos_netos,
         utilidad_bruta=utilidad_bruta,
         gastos_operativos=gastos_operativos,
@@ -1272,4 +1056,5 @@ def summary(
         + gastos_operativos
         + total_by_nature[NaturalezaRubro.GASTO_FINANCIERO]
         + total_by_nature[NaturalezaRubro.IMPUESTO],
+        rentabilidad_por_centro=rentabilidad_por_centro,
     )

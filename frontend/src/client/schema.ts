@@ -730,42 +730,6 @@ export interface paths {
         patch: operations["update_rubro_api_v1_ganancias_perdidas_rubros__rubro_id__patch"];
         trace?: never;
     };
-    "/api/v1/ganancias-perdidas/mapeos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Mapeos */
-        get: operations["list_mapeos_api_v1_ganancias_perdidas_mapeos_get"];
-        put?: never;
-        /** Create Mapeo */
-        post: operations["create_mapeo_api_v1_ganancias_perdidas_mapeos_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/ganancias-perdidas/mapeos/{mapeo_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Mapeo */
-        delete: operations["delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Mapeo */
-        patch: operations["update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch"];
-        trace?: never;
-    };
     "/api/v1/ganancias-perdidas/reglas-distribucion": {
         parameters: {
             query?: never;
@@ -830,23 +794,6 @@ export interface paths {
         put?: never;
         /** Import Asientos */
         post: operations["import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/ganancias-perdidas/importar-base-gastos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Base Gastos */
-        post: operations["import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -998,8 +945,6 @@ export interface components {
              * Format: date
              */
             fecha: string;
-            /** Cuenta Contable */
-            cuenta_contable: string;
             /** Descripcion */
             descripcion: string;
             /** Documento */
@@ -1042,7 +987,7 @@ export interface components {
              */
             fecha: string;
             /** Cuenta Contable */
-            cuenta_contable: string;
+            cuenta_contable: string | null;
             /** Descripcion */
             descripcion: string;
             /** Documento */
@@ -1078,8 +1023,6 @@ export interface components {
         AsientoResultadoUpdate: {
             /** Fecha */
             fecha?: string | null;
-            /** Cuenta Contable */
-            cuenta_contable?: string | null;
             /** Descripcion */
             descripcion?: string | null;
             /** Documento */
@@ -1149,11 +1092,6 @@ export interface components {
         };
         /** Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post */
         Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post: {
-            /** Archivo */
-            archivo: string;
-        };
-        /** Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post */
-        Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post: {
             /** Archivo */
             archivo: string;
         };
@@ -1564,58 +1502,6 @@ export interface components {
             /** Filas Nuevas */
             filas_nuevas: number;
         };
-        /** MapeoResultadoCreate */
-        MapeoResultadoCreate: {
-            /** Cuenta Contable */
-            cuenta_contable: string;
-            /**
-             * Rubro Id
-             * Format: uuid
-             */
-            rubro_id: string;
-            /** Centro Resultado Id */
-            centro_resultado_id?: string | null;
-            /** Vigente Desde */
-            vigente_desde?: string | null;
-            /** Vigente Hasta */
-            vigente_hasta?: string | null;
-        };
-        /** MapeoResultadoRead */
-        MapeoResultadoRead: {
-            /** Cuenta Contable */
-            cuenta_contable: string;
-            /**
-             * Rubro Id
-             * Format: uuid
-             */
-            rubro_id: string;
-            /** Centro Resultado Id */
-            centro_resultado_id?: string | null;
-            /** Vigente Desde */
-            vigente_desde?: string | null;
-            /** Vigente Hasta */
-            vigente_hasta?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Is Active */
-            is_active: boolean;
-        };
-        /** MapeoResultadoUpdate */
-        MapeoResultadoUpdate: {
-            /** Cuenta Contable */
-            cuenta_contable?: string | null;
-            /** Rubro Id */
-            rubro_id?: string | null;
-            /** Centro Resultado Id */
-            centro_resultado_id?: string | null;
-            /** Vigente Desde */
-            vigente_desde?: string | null;
-            /** Vigente Hasta */
-            vigente_hasta?: string | null;
-        };
         /**
          * NaturalezaRubro
          * @enum {string}
@@ -1635,10 +1521,11 @@ export interface components {
         ReglaDistribucionCreate: {
             /** Nombre */
             nombre: string;
-            /** Cuenta Contable */
-            cuenta_contable?: string | null;
-            /** Rubro Id */
-            rubro_id?: string | null;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
             /** Vigente Desde */
             vigente_desde?: string | null;
             /** Vigente Hasta */
@@ -1675,10 +1562,11 @@ export interface components {
             id: string;
             /** Nombre */
             nombre: string;
-            /** Cuenta Contable */
-            cuenta_contable: string | null;
-            /** Rubro Id */
-            rubro_id: string | null;
+            /**
+             * Rubro Id
+             * Format: uuid
+             */
+            rubro_id: string;
             /** Vigente Desde */
             vigente_desde: string | null;
             /** Vigente Hasta */
@@ -1687,6 +1575,26 @@ export interface components {
             is_active: boolean;
             /** Lineas */
             lineas: components["schemas"]["ReglaDistribucionLineaCreate-Output"][];
+        };
+        /** RentabilidadCentroResultadoRead */
+        RentabilidadCentroResultadoRead: {
+            /**
+             * Centro Id
+             * Format: uuid
+             */
+            centro_id: string;
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /** Ingresos Brutos */
+            ingresos_brutos: string;
+            /** Ingresos Netos */
+            ingresos_netos: string;
+            /** Utilidad Bruta */
+            utilidad_bruta: string;
+            /** Utilidad Neta */
+            utilidad_neta: string;
         };
         /** ReporteCambio */
         ReporteCambio: {
@@ -1777,6 +1685,8 @@ export interface components {
             centros: components["schemas"]["CentroResultadoRead"][];
             /** Rubros */
             rubros: components["schemas"]["ResultadoRubroRead"][];
+            /** Ingresos Brutos */
+            ingresos_brutos: string;
             /** Ingresos Netos */
             ingresos_netos: string;
             /** Utilidad Bruta */
@@ -1787,6 +1697,8 @@ export interface components {
             utilidad_operativa: string;
             /** Utilidad Neta */
             utilidad_neta: string;
+            /** Rentabilidad Por Centro */
+            rentabilidad_por_centro: components["schemas"]["RentabilidadCentroResultadoRead"][];
         };
         /** ResumenGrupoRead */
         ResumenGrupoRead: {
@@ -4684,136 +4596,6 @@ export interface operations {
             };
         };
     };
-    list_mapeos_api_v1_ganancias_perdidas_mapeos_get: {
-        parameters: {
-            query?: {
-                include_inactive?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MapeoResultadoRead"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_mapeo_api_v1_ganancias_perdidas_mapeos_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MapeoResultadoCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MapeoResultadoRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapeo_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MapeoResultadoRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_mapeo_api_v1_ganancias_perdidas_mapeos__mapeo_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapeo_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MapeoResultadoUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MapeoResultadoRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_distribution_rules_api_v1_ganancias_perdidas_reglas_distribucion_get: {
         parameters: {
             query?: {
@@ -4974,39 +4756,6 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_import_asientos_api_v1_ganancias_perdidas_importar_xlsx_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportResultadoRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_import_base_gastos_api_v1_ganancias_perdidas_importar_base_gastos_post"];
             };
         };
         responses: {

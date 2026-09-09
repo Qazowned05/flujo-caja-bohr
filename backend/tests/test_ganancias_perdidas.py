@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -72,10 +72,10 @@ def test_imported_entries_build_a_traceable_profit_loss_summary(client_and_sessi
     sheet.title = "Asientos"
     sheet.append(TEMPLATE_HEADERS)
     sheet.append(
-        [date(2026, 6, 1), "701101", "Factura", "F001-1", "PEN", 0, 1000, "200", "VENTAS", ""]
+        [date(2026, 6, 1), "Factura", "F001-1", "PEN", 0, 1000, "200", "VENTAS", ""]
     )
     sheet.append(
-        [date(2026, 6, 30), "621101", "Planilla", "PL-1", "PEN", 300, 0, "200", "PERSONAL", ""]
+        [date(2026, 6, 30), "Planilla", "PL-1", "PEN", 300, 0, "200", "PERSONAL", ""]
     )
     output = io.BytesIO()
     workbook.save(output)
@@ -129,7 +129,7 @@ def test_distribution_rule_applies_only_without_an_explicit_center(client_and_se
         "/api/v1/ganancias-perdidas/reglas-distribucion",
         json={
             "nombre": "Planilla compartida",
-            "cuenta_contable": "621101",
+            "rubro_id": rubro["id"],
             "lineas": [
                 {"centro_resultado_id": first["id"], "porcentaje": "60"},
                 {"centro_resultado_id": second["id"], "porcentaje": "40"},
@@ -137,6 +137,18 @@ def test_distribution_rule_applies_only_without_an_explicit_center(client_and_se
         },
     )
     assert rule.status_code == 201
+    updated_rule = client.patch(
+        f"/api/v1/ganancias-perdidas/reglas-distribucion/{rule.json()['id']}",
+        json={
+            "nombre": "Planilla compartida",
+            "rubro_id": rubro["id"],
+            "lineas": [
+                {"centro_resultado_id": first["id"], "porcentaje": "60"},
+                {"centro_resultado_id": second["id"], "porcentaje": "40"},
+            ],
+        },
+    )
+    assert updated_rule.status_code == 200
     shared = client.post(
         "/api/v1/ganancias-perdidas/asientos",
         json={
@@ -166,3 +178,33 @@ def test_distribution_rule_applies_only_without_an_explicit_center(client_and_se
     summary = client.get("/api/v1/ganancias-perdidas/resumen").json()
     row = next(item for item in summary["rubros"] if item["codigo"] == "PERSONAL")
     assert row["por_centro"] == {"300": "-110.00", "310": "-40.00"}
+
+
+def test_template_requires_a_rubro_and_guides_the_user(client_and_session):
+    client, _ = client_and_session
+    client.post(
+        "/api/v1/ganancias-perdidas/centros", json={"codigo": "300", "nombre": "Santa Natura"}
+    )
+    client.post(
+        "/api/v1/ganancias-perdidas/rubros",
+        json={"codigo": "VENTAS", "nombre": "Ventas", "naturaleza": "INGRESO"},
+    )
+    template = client.get("/api/v1/ganancias-perdidas/plantilla.xlsx")
+    workbook = load_workbook(io.BytesIO(template.content))
+    assert {"Asientos", "Lineas de negocio", "Rubros", "Guia de tipificacion"} <= set(workbook.sheetnames)
+    assert "cuenta_contable" not in [cell.value for cell in workbook["Asientos"][1]]
+    assert {str(validation.sqref) for validation in workbook["Asientos"].data_validations.dataValidation} == {
+        "D2:D5000", "G2:G5000", "H2:H5000"
+    }
+
+    invalid = client.post(
+        "/api/v1/ganancias-perdidas/asientos",
+        json={
+            "fecha": "2026-06-30",
+            "cuenta_contable": "701101",
+            "descripcion": "Venta sin linea",
+            "rubro_id": client.get("/api/v1/ganancias-perdidas/rubros").json()[0]["id"],
+            "haber": "100",
+        },
+    )
+    assert invalid.status_code == 422

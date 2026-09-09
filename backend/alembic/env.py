@@ -12,7 +12,6 @@ from app.modules.ganancias_perdidas.models import (  # noqa: F401
     AsientoResultado,
     CentroResultado,
     LoteResultado,
-    MapeoResultado,
     RubroResultado,
 )
 from app.modules.imports.models import ImportBatch  # noqa: F401

@@ -62,7 +62,6 @@ export type TransactionUpdate = Schema["TransaccionUpdate"];
 export type Transaction = Schema["TransaccionRead"];
 export type CentroResultado = Schema["CentroResultadoRead"];
 export type RubroResultado = Schema["RubroResultadoRead"];
-export type MapeoResultado = Schema["MapeoResultadoRead"];
 export type ReglaDistribucion = Schema["ReglaDistribucionRead"];
 export type AsientoResultado = Schema["AsientoResultadoRead"];
 export type EgypSummary = JsonResponse<"/api/v1/ganancias-perdidas/resumen", "get">;
@@ -311,18 +310,12 @@ export const api = {
   egypRubros: (includeInactive = false) => request<RubroResultado[]>(
     `/api/v1/ganancias-perdidas/rubros${includeInactive ? "?include_inactive=true" : ""}`,
   ),
-  egypMapeos: (includeInactive = false) => request<MapeoResultado[]>(
-    `/api/v1/ganancias-perdidas/mapeos${includeInactive ? "?include_inactive=true" : ""}`,
-  ),
   createEgypCentro: (body: Schema["CentroResultadoCreate"]) => json("/api/v1/ganancias-perdidas/centros", "POST", body),
   updateEgypCentro: (id: string, body: Schema["CentroResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/centros/${id}`, "PATCH", body),
   deleteEgypCentro: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/centros/${id}`, { method: "DELETE" }),
   createEgypRubro: (body: Schema["RubroResultadoCreate"]) => json("/api/v1/ganancias-perdidas/rubros", "POST", body),
   updateEgypRubro: (id: string, body: Schema["RubroResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/rubros/${id}`, "PATCH", body),
   deleteEgypRubro: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/rubros/${id}`, { method: "DELETE" }),
-  createEgypMapeo: (body: Schema["MapeoResultadoCreate"]) => json("/api/v1/ganancias-perdidas/mapeos", "POST", body),
-  updateEgypMapeo: (id: string, body: Schema["MapeoResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/mapeos/${id}`, "PATCH", body),
-  deleteEgypMapeo: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/mapeos/${id}`, { method: "DELETE" }),
   egypReglas: (includeInactive = false) => request<ReglaDistribucion[]>(
     `/api/v1/ganancias-perdidas/reglas-distribucion${includeInactive ? "?include_inactive=true" : ""}`,
   ),
@@ -338,10 +331,5 @@ export const api = {
     const form = new FormData();
     form.append("archivo", file);
     return request<EgypImportResult>("/api/v1/ganancias-perdidas/importar.xlsx", { method: "POST", body: form });
-  },
-  importEgypBaseGastos: (file: File) => {
-    const form = new FormData();
-    form.append("archivo", file);
-    return request<EgypImportResult>("/api/v1/ganancias-perdidas/importar-base-gastos", { method: "POST", body: form });
   },
 };

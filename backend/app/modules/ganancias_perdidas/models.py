@@ -66,28 +66,12 @@ class RubroResultado(SoftDeleteMixin, Base):
     orden: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
 
 
-class MapeoResultado(SoftDeleteMixin, Base):
-    __tablename__ = "mapeos_resultado"
-
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    cuenta_contable: Mapped[str] = mapped_column(String(100), index=True)
-    rubro_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rubros_resultado.id"), index=True)
-    centro_resultado_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("centros_resultado.id"), nullable=True, index=True
-    )
-    vigente_desde: Mapped[date | None] = mapped_column(Date, nullable=True)
-    vigente_hasta: Mapped[date | None] = mapped_column(Date, nullable=True)
-
-
 class ReglaDistribucion(SoftDeleteMixin, Base):
     __tablename__ = "reglas_distribucion_resultado"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     nombre: Mapped[str] = mapped_column(String(255), unique=True)
-    cuenta_contable: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
-    rubro_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("rubros_resultado.id"), nullable=True, index=True
-    )
+    rubro_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rubros_resultado.id"), index=True)
     vigente_desde: Mapped[date | None] = mapped_column(Date, nullable=True)
     vigente_hasta: Mapped[date | None] = mapped_column(Date, nullable=True)
     lineas: Mapped[list["ReglaDistribucionLinea"]] = relationship(
@@ -132,7 +116,7 @@ class AsientoResultado(SoftDeleteMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     fecha: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    cuenta_contable: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    cuenta_contable: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
     documento: Mapped[str | None] = mapped_column(String(255), nullable=True)
     moneda: Mapped[str] = mapped_column(String(3), nullable=False, default="PEN")
