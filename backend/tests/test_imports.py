@@ -134,6 +134,10 @@ def test_excel_template_includes_catalogue_reference_sheets(client_and_session):
     assert list(workbook["Vendedores"].values) == [("vendedor", "sucursal"), ("Ana", "Lima")]
     assert workbook["Listas tipificacion"].sheet_state == "hidden"
     assert len(workbook["Movimientos"].data_validations.dataValidation) == 5
+    formulas = {validation.formula1 for validation in workbook["Movimientos"].data_validations.dataValidation}
+    assert "=activity_options" in formulas
+    assert any("VLOOKUP($I2" in formula for formula in formulas)
+    assert any("VLOOKUP($F2" in formula for formula in formulas)
 
 
 def test_import_accepts_native_excel_dates_and_numbers(client_and_session):
