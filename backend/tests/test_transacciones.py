@@ -87,6 +87,23 @@ def make_account(session: Session, moneda: str = "PEN") -> CuentaBancaria:
     return account
 
 
+def test_update_user_without_password_keeps_existing_password(client_and_session):
+    client, session, user = client_and_session
+    user.rol = UserRole.ADMIN
+    user.is_superuser = True
+    session.commit()
+
+    response = client.patch(
+        f"/api/v1/users/{user.id}",
+        json={"nombre": "Nombre actualizado", "password": None},
+    )
+
+    assert response.status_code == 200
+    session.refresh(user)
+    assert user.nombre == "Nombre actualizado"
+    assert user.hashed_password == "unused"
+
+
 def test_list_transacciones_filters_by_creator_and_includes_name(client_and_session):
     client, session, user = client_and_session
     account = make_account(session)

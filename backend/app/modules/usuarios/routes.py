@@ -74,7 +74,7 @@ def update_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
 
-    values = user_in.model_dump(exclude_unset=True)
+    values = user_in.model_dump(exclude_unset=True, exclude_none=True)
     changes = {
         field: {"old": getattr(user, field), "new": value}
         for field, value in values.items()

@@ -21,8 +21,8 @@ export function UsersPage() {
         ? api.updateUser(editing.id, {
             nombre: form.nombre,
             rol: form.rol,
-            password: form.password || null,
             is_active: form.is_active,
+            ...(form.password ? { password: form.password } : {}),
           })
         : api.createUser({
             email: form.email,
