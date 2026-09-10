@@ -136,6 +136,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
         : `Error ${response.status}`;
     throw new ApiError(response.status, message, rowErrors);
   }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
