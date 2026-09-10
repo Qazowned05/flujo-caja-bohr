@@ -307,9 +307,10 @@ export function Transactions() {
                           >
                             Editar
                           </Button>
-                          {user.data?.rol === "admin" && row.is_active && (
-                            <CancelTransactionButton transaction={row} />
-                          )}
+                          {user.data?.rol === "admin" && <>
+                            {row.is_active && <CancelTransactionButton transaction={row} />}
+                            <DeleteTransactionButton transaction={row} />
+                          </>}
                         </HStack>
                       </Td>
                     </Tr>
@@ -500,6 +501,49 @@ function CancelTransactionButton({
                 <ErrorBox error={cancel.error} />
               </Box>
             )}
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
+  );
+}
+
+function DeleteTransactionButton({
+  transaction,
+}: {
+  transaction: Transaction;
+}) {
+  const dialog = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const queryClient = useQueryClient();
+  const remove = useMutation({
+    mutationFn: () => api.deleteTransaction(transaction.id),
+    onSuccess: () => {
+      ["transactions", "summary", "tipification-breakdown"].forEach(
+        (key) => void queryClient.invalidateQueries({ queryKey: [key] }),
+      );
+      dialog.onClose();
+    },
+  });
+  return (
+    <>
+      <Button size="xs" variant="ghost" colorScheme="red" onClick={dialog.onOpen}>
+        Eliminar
+      </Button>
+      <AlertDialog isOpen={dialog.isOpen} leastDestructiveRef={cancelRef} onClose={dialog.onClose}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader>Eliminar permanentemente</AlertDialogHeader>
+            <AlertDialogBody>
+              Esta acción borra la transacción y sus operaciones asociadas de forma permanente. No se puede deshacer.
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={dialog.onClose}>Cancelar</Button>
+              <Button colorScheme="red" ml="3" isLoading={remove.isPending} onClick={() => remove.mutate()}>
+                Eliminar permanentemente
+              </Button>
+            </AlertDialogFooter>
+            {remove.isError && <Box px="6" pb="4"><ErrorBox error={remove.error} /></Box>}
           </AlertDialogContent>
         </AlertDialogOverlay>
       </AlertDialog>

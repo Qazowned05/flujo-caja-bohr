@@ -265,6 +265,8 @@ export const api = {
     request<Transaction>(`/api/v1/transacciones/${id}/anular`, {
       method: "PATCH",
     }),
+  deleteTransaction: (id: string) =>
+    request<void>(`/api/v1/transacciones/${id}`, { method: "DELETE" }),
   summary: (params: URLSearchParams) =>
     request<Summary>(`/api/v1/flujo-caja/resumen?${params}`),
   tipificationBreakdown: (params: URLSearchParams) =>

@@ -13,6 +13,7 @@ class AuditAction(str, enum.Enum):
     CREATE = "CREATE"
     UPDATE = "UPDATE"
     SOFT_DELETE = "SOFT_DELETE"
+    HARD_DELETE = "HARD_DELETE"
 
 
 class AuditLog(Base):

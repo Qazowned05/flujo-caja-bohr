@@ -173,7 +173,8 @@ def test_export_has_tipification_sheet_and_only_pending(client_and_session):
 
     assert response.status_code == 200
     workbook = load_workbook(io.BytesIO(response.content), data_only=True)
-    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores"]
+    assert workbook.sheetnames == ["Movimientos", "Tipificaciones", "Sucursales", "Vendedores", "Listas tipificacion"]
+    assert workbook["Listas tipificacion"].sheet_state == "hidden"
     rows = list(workbook["Movimientos"].values)
     assert list(rows[0]) == HEADERS
     assert len(rows) == 2
@@ -186,6 +187,14 @@ def test_export_has_tipification_sheet_and_only_pending(client_and_session):
     ]
     assert list(workbook["Sucursales"].values) == [("sucursal",), ("Lima",)]
     assert list(workbook["Vendedores"].values) == [("vendedor", "sucursal"), ("Ana", "Lima")]
+    validations = list(workbook["Movimientos"].data_validations.dataValidation)
+    assert [validation.formula1 for validation in validations] == [
+        "=activity_options",
+        '=INDIRECT(IFERROR(VLOOKUP($I2,\'Listas tipificacion\'!$A$2:$B$2,2,FALSE),"empty_list"))',
+        '=INDIRECT(IFERROR(VLOOKUP($I2&"|"&$J2,\'Listas tipificacion\'!$D$2:$E$2,2,FALSE),"empty_list"))',
+        "'Sucursales'!$A$2:$A$2",
+        '=INDIRECT(IFERROR(VLOOKUP($F2,\'Listas tipificacion\'!$I$2:$J$2,2,FALSE),"empty_list"))',
+    ]
 
 
 def test_export_filters_pending_by_creator(client_and_session):

@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session, aliased
 from app.core.database import get_db
 from app.modules.categorias.models import Actividad, Concepto, Tipo
 from app.modules.cuentas_bancos.models import Banco, CuentaBancaria
+from app.modules.imports.excel import add_dependent_tipification_lists
 from app.modules.reports.schemas import ActualizacionMasivaResponse
 from app.modules.shared.audit import log_audit
 from app.modules.shared.models import AuditAction
@@ -329,7 +330,7 @@ def export_no_tipificados(
         )
     tipifications = workbook.create_sheet("Tipificaciones")
     tipifications.append(["actividad", "concepto", "tipo"])
-    for actividad, concepto, tipo in db.execute(
+    tipification_rows = list(db.execute(
         select(Actividad.nombre, Concepto.nombre, Tipo.nombre)
         .join(Concepto, Tipo.concepto_id == Concepto.id)
         .join(Actividad, Concepto.actividad_id == Actividad.id)
@@ -339,25 +340,41 @@ def export_no_tipificados(
             Tipo.is_active.is_(True),
         )
         .order_by(Actividad.nombre, Concepto.nombre, Tipo.nombre)
-    ):
+    ))
+    for actividad, concepto, tipo in tipification_rows:
         tipifications.append([actividad, concepto, tipo])
     branches = workbook.create_sheet("Sucursales")
     branches.append(["sucursal"])
-    for (branch,) in db.execute(
+    branch_names = list(db.scalars(
         select(Sucursal.nombre)
         .where(Sucursal.is_active.is_(True))
         .order_by(Sucursal.nombre)
-    ):
+    ))
+    for branch in branch_names:
         branches.append([branch])
     sellers = workbook.create_sheet("Vendedores")
     sellers.append(["vendedor", "sucursal"])
-    for seller, branch in db.execute(
+    seller_rows = list(db.execute(
         select(Vendedor.nombre, Sucursal.nombre)
         .outerjoin(Sucursal, Vendedor.sucursal_id == Sucursal.id)
         .where(Vendedor.is_active.is_(True))
         .order_by(Vendedor.nombre)
-    ):
+    ))
+    for seller, branch in seller_rows:
         sellers.append([seller, branch or ""])
+    add_dependent_tipification_lists(
+        workbook,
+        movements,
+        tipification_rows=tipification_rows,
+        branch_names=branch_names,
+        seller_rows=seller_rows,
+        activity_column="I",
+        concept_column="J",
+        type_column="K",
+        branch_column="F",
+        seller_column="G",
+        allow_blank=True,
+    )
     output = io.BytesIO()
     workbook.save(output)
     return Response(

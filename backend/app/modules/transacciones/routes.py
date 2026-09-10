@@ -657,3 +657,36 @@ def anular_transaccion(
     db.commit()
     db.refresh(transaction)
     return transaction
+
+
+@router.delete("/{transaccion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_transaccion_permanently(
+    transaccion_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    if current_user.rol != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Se requiere rol de admin."
+        )
+    transaction = db.get(Transaccion, transaccion_id)
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Transaccion no encontrada."
+        )
+    log_audit(
+        db,
+        user=current_user,
+        table=Transaccion.__tablename__,
+        record_id=transaction.id,
+        action=AuditAction.HARD_DELETE,
+        changes={
+            "accion": "eliminado_permanentemente",
+            "descripcion": transaction.descripcion,
+            "monto": transaction.monto,
+            "estado": transaction.estado,
+            "origen": transaction.origen,
+        },
+    )
+    db.delete(transaction)
+    db.commit()

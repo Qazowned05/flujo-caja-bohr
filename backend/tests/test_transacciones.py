@@ -194,6 +194,29 @@ def test_multiple_transaction_creates_searches_and_updates_operations(client_and
     assert duplicate.status_code == 409
 
 
+def test_delete_transaccion_permanently_requires_admin_and_keeps_audit(client_and_session):
+    client, session, user = client_and_session
+    account = make_account(session)
+    transaction = make_transaction(session, user, account)
+
+    assert client.delete(f"/api/v1/transacciones/{transaction.id}").status_code == 403
+
+    user.rol = UserRole.ADMIN
+    session.commit()
+    response = client.delete(f"/api/v1/transacciones/{transaction.id}")
+
+    assert response.status_code == 204
+    assert session.get(Transaccion, transaction.id) is None
+    audit = session.scalar(
+        select(AuditLog).where(
+            AuditLog.registro_id == transaction.id,
+            AuditLog.accion == AuditAction.HARD_DELETE,
+        )
+    )
+    assert audit is not None
+    assert audit.cambios["accion"] == "eliminado_permanentemente"
+
+
 def test_create_proyeccion_inherits_currency_status_and_audits(client_and_session):
     client, session, _ = client_and_session
     account = make_account(session, moneda="USD")
