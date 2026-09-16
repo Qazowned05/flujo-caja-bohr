@@ -1,44 +1,79 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Box, Button, Card, CardBody, HStack, Input, Select, SimpleGrid, Stack, Text, Textarea } from "@chakra-ui/react";
-import { api, type AsientoResultado, type ReglaDistribucion } from "../client/api";
+import { api, type ReglaDistribucion } from "../client/api";
 import { DataTable, Editor, ErrorBox, Field, PageTitle, TablePagination } from "../components/common";
-import { today } from "../lib/format";
 
 type RuleLine = { centro_resultado_id: string; porcentaje: string };
-const emptyEntry = { fecha: today(), descripcion: "", documento: "", moneda: "PEN", debe: "", haber: "", centro_resultado_id: "", rubro_id: "", observaciones: "" };
-const emptyRule = { nombre: "", rubro_id: "", vigente_desde: "", vigente_hasta: "", lineas: [{ centro_resultado_id: "", porcentaje: "" }, { centro_resultado_id: "", porcentaje: "" }] as RuleLine[] };
+const currentDate = new Date();
+const emptyEntry = { descripcion: "", importe: "", centro_resultado_id: "", rubro_id: "", observaciones: "" };
+const emptyRule = { nombre: "", rubro_id: "", vigente_desde: "", lineas: [{ centro_resultado_id: "", porcentaje: "" }, { centro_resultado_id: "", porcentaje: "" }] as RuleLine[] };
+const monthEnd = (period: string) => {
+  const [year, month] = period.split("-").map(Number);
+  return `${year}-${String(month).padStart(2, "0")}-${new Date(year, month, 0).getDate()}`;
+};
 
 export function ProfitLossOperationsPage() {
   const queryClient = useQueryClient();
+  const [period, setPeriod] = useState(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`);
+  const [entry, setEntry] = useState(emptyEntry);
+  const [rule, setRule] = useState(emptyRule);
+  const [ruleSearch, setRuleSearch] = useState("");
+  const [rulePage, setRulePage] = useState(1);
   const centers = useQuery({ queryKey: ["egyp-centros"], queryFn: () => api.egypCentros() });
   const rubros = useQuery({ queryKey: ["egyp-rubros"], queryFn: () => api.egypRubros() });
   const rules = useQuery({ queryKey: ["egyp-rules"], queryFn: () => api.egypReglas(true) });
-  const entries = useQuery({ queryKey: ["egyp-entries-admin"], queryFn: () => api.egypEntries(new URLSearchParams()) });
-  const [entry, setEntry] = useState(emptyEntry);
-  const [editingEntry, setEditingEntry] = useState<AsientoResultado>();
-  const [rule, setRule] = useState(emptyRule);
-  const [editingRule, setEditingRule] = useState<ReglaDistribucion>();
-  const [ruleSearch, setRuleSearch] = useState("");
-  const [rulePage, setRulePage] = useState(1);
-  const [entrySearch, setEntrySearch] = useState("");
-  const [entryPage, setEntryPage] = useState(1);
-  const refresh = () => ["egyp-rules", "egyp-entries-admin", "egyp-summary"].forEach((key) => void queryClient.invalidateQueries({ queryKey: [key] }));
-  const saveEntry = useMutation({ mutationFn: () => { const body = { ...entry, debe: entry.debe || 0, haber: entry.haber || 0, centro_resultado_id: entry.centro_resultado_id || null, documento: entry.documento || null, observaciones: entry.observaciones || null }; return editingEntry ? api.updateEgypEntry(editingEntry.id, body) : api.createEgypEntry(body); }, onSuccess: () => { refresh(); setEntry(emptyEntry); setEditingEntry(undefined); } });
-  const saveRule = useMutation({ mutationFn: () => { const body = { ...rule, vigente_desde: rule.vigente_desde || null, vigente_hasta: rule.vigente_hasta || null, lineas: rule.lineas.map((line) => ({ ...line, porcentaje: line.porcentaje })) }; return editingRule ? api.updateEgypRegla(editingRule.id, body) : api.createEgypRegla(body); }, onSuccess: () => { refresh(); setRule(emptyRule); setEditingRule(undefined); } });
-  const matchingRules = (rules.data ?? []).filter((item) => item.nombre.toLowerCase().includes(ruleSearch.trim().toLowerCase()));
-  const matchingEntries = (entries.data ?? []).filter((item) => item.origen === "MANUAL" && [item.descripcion, item.documento ?? ""].some((value) => value.toLowerCase().includes(entrySearch.trim().toLowerCase())));
-  const rulePageSize = 8; const entryPageSize = 10;
-  const safeRulePage = Math.min(rulePage, Math.max(1, Math.ceil(matchingRules.length / rulePageSize)));
-  const safeEntryPage = Math.min(entryPage, Math.max(1, Math.ceil(matchingEntries.length / entryPageSize)));
-  const visibleRules = matchingRules.slice((safeRulePage - 1) * rulePageSize, safeRulePage * rulePageSize);
-  const visibleEntries = matchingEntries.slice((safeEntryPage - 1) * entryPageSize, safeEntryPage * entryPageSize);
+  const parentIds = new Set((rubros.data ?? []).flatMap((item) => item.padre_id ? [item.padre_id] : []));
+  const concepts = (rubros.data ?? []).filter((item) => item.is_active && !parentIds.has(item.id));
+  const selectedRubro = concepts.find((item) => item.id === entry.rubro_id);
+  const refresh = () => ["egyp-rules", "egyp-summary", "egyp-entries", "egyp-entries-admin"].forEach((key) => void queryClient.invalidateQueries({ queryKey: [key] }));
+  const saveEntry = useMutation({
+    mutationFn: () => {
+      if (!selectedRubro) throw new Error("Selecciona un concepto.");
+      const amount = Number(entry.importe);
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error("Ingresa un monto mayor a cero.");
+      const credit = ["INGRESO", "INGRESO_FINANCIERO"].includes(selectedRubro.naturaleza);
+      return api.createEgypEntry({
+        fecha: monthEnd(period), descripcion: entry.descripcion || selectedRubro.nombre,
+        documento: `Cierre ${period}`, moneda: "PEN", debe: credit ? 0 : amount, haber: credit ? amount : 0,
+        centro_resultado_id: entry.centro_resultado_id || null, rubro_id: selectedRubro.id,
+        observaciones: entry.observaciones || null,
+      });
+    },
+    onSuccess: () => { refresh(); setEntry(emptyEntry); },
+  });
+  const saveRule = useMutation({
+    mutationFn: () => api.createEgypRegla({ ...rule, vigente_desde: rule.vigente_desde || null, vigente_hasta: null, lineas: rule.lineas }),
+    onSuccess: () => { refresh(); setRule(emptyRule); },
+  });
+  const matchingRules = (rules.data ?? []).filter((item) => item.is_active && item.nombre.toLowerCase().includes(ruleSearch.trim().toLowerCase()));
+  const pageSize = 8;
+  const safePage = Math.min(rulePage, Math.max(1, Math.ceil(matchingRules.length / pageSize)));
+  const visibleRules = matchingRules.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return <Stack spacing="6">
-    <PageTitle title="Operación EGyP" description="Crea repartos por rubro y registra asientos manuales sin cuentas contables." />
-    <SimpleGrid columns={{ base: 1, md: 3 }} spacing="4"><Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">1. DISTRIBUYE</Text><Text mt="1" fontWeight="semibold">Configura un rubro compartido</Text><Text mt="1" fontSize="sm" color="gray.500">Usa reglas solo cuando el asiento se reparte entre varias líneas.</Text></CardBody></Card><Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">2. REGISTRA</Text><Text mt="1" fontWeight="semibold">Crea un asiento</Text><Text mt="1" fontSize="sm" color="gray.500">Elige rubro, línea y el importe en Debe o Haber.</Text></CardBody></Card><Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">3. REVISA</Text><Text mt="1" fontWeight="semibold">Consulta el resultado</Text><Text mt="1" fontSize="sm" color="gray.500">Revisa la matriz mensual y su detalle por rubro.</Text></CardBody></Card></SimpleGrid>
-    <Editor title={editingRule ? "Editar regla de distribución" : "Nueva regla de distribución"} onSubmit={() => saveRule.mutate()} loading={saveRule.isPending} error={saveRule.error}><SimpleGrid columns={{ base: 1, md: 3 }} spacing="3"><Field label="Nombre" required><Input value={rule.nombre} onChange={(event) => setRule({ ...rule, nombre: event.target.value })} /></Field><Field label="Rubro a distribuir" required><Select value={rule.rubro_id} onChange={(event) => setRule({ ...rule, rubro_id: event.target.value })}><option value="">Selecciona rubro</option>{rubros.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Vigente desde"><Input type="date" value={rule.vigente_desde} onChange={(event) => setRule({ ...rule, vigente_desde: event.target.value })} /></Field></SimpleGrid><SimpleGrid columns={{ base: 1, md: 2 }} spacing="3" mt="3">{rule.lineas.map((line, index) => <HStack key={index}><Select value={line.centro_resultado_id} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, centro_resultado_id: event.target.value } : current) })}><option value="">Línea de negocio</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select><Input type="number" step="0.01" placeholder="%" value={line.porcentaje} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, porcentaje: event.target.value } : current) })} /><Button size="sm" isDisabled={rule.lineas.length <= 2} onClick={() => setRule({ ...rule, lineas: rule.lineas.filter((_, currentIndex) => currentIndex !== index) })}>Quitar</Button></HStack>)}</SimpleGrid><Button mt="3" size="sm" onClick={() => setRule({ ...rule, lineas: [...rule.lineas, { centro_resultado_id: "", porcentaje: "" }] })}>Agregar línea</Button></Editor>
-    {rules.data && <Stack spacing="3"><Box><Text fontWeight="semibold">Reglas registradas</Text><Text fontSize="sm" color="gray.500">Cada regla se aplica al dejar la línea vacía en un asiento de ese rubro.</Text></Box><Input value={ruleSearch} onChange={(event) => { setRuleSearch(event.target.value); setRulePage(1); }} placeholder="Buscar por nombre" /><DataTable headers={["Regla", "Rubro", "Distribución", "Estado", ""]} empty="No hay reglas de distribución.">{visibleRules.map((item) => <tr key={item.id}><td>{item.nombre}</td><td>{rubros.data?.find((rubro) => rubro.id === item.rubro_id)?.nombre}</td><td>{item.lineas.map((line) => `${centers.data?.find((center) => center.id === line.centro_resultado_id)?.nombre ?? "Línea"}: ${line.porcentaje}%`).join(" · ")}</td><td>{item.is_active ? "Activa" : "Inactiva"}</td><td><HStack><Button size="sm" onClick={() => { setEditingRule(item); setRule({ nombre: item.nombre, rubro_id: item.rubro_id, vigente_desde: item.vigente_desde ?? "", vigente_hasta: item.vigente_hasta ?? "", lineas: item.lineas.map((line) => ({ centro_resultado_id: line.centro_resultado_id, porcentaje: String(line.porcentaje) })) }); }}>Editar</Button>{item.is_active && <Button size="sm" colorScheme="red" variant="ghost" onClick={() => api.deleteEgypRegla(item.id).then(refresh)}>Inactivar</Button>}</HStack></td></tr>)}</DataTable><TablePagination total={matchingRules.length} page={safeRulePage} pageSize={rulePageSize} onPageChange={setRulePage} /></Stack>}
-    <Editor title={editingEntry ? "Editar asiento manual" : "Nuevo asiento manual"} onSubmit={() => saveEntry.mutate()} loading={saveEntry.isPending} error={saveEntry.error}><SimpleGrid columns={{ base: 1, md: 3 }} spacing="3"><Field label="Fecha" required><Input type="date" value={entry.fecha} onChange={(event) => setEntry({ ...entry, fecha: event.target.value })} /></Field><Field label="Debe"><Input type="number" step="0.01" value={entry.debe} onChange={(event) => setEntry({ ...entry, debe: event.target.value })} /></Field><Field label="Haber"><Input type="number" step="0.01" value={entry.haber} onChange={(event) => setEntry({ ...entry, haber: event.target.value })} /></Field><Field label="Rubro" required><Select value={entry.rubro_id} onChange={(event) => setEntry({ ...entry, rubro_id: event.target.value })}><option value="">Selecciona rubro</option>{rubros.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Línea de negocio"><Select value={entry.centro_resultado_id} onChange={(event) => setEntry({ ...entry, centro_resultado_id: event.target.value })}><option value="">Aplicar regla del rubro</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Documento"><Input value={entry.documento} onChange={(event) => setEntry({ ...entry, documento: event.target.value })} /></Field></SimpleGrid><Field label="Descripción" required><Input value={entry.descripcion} onChange={(event) => setEntry({ ...entry, descripcion: event.target.value })} /></Field><Field label="Observaciones"><Textarea value={entry.observaciones} onChange={(event) => setEntry({ ...entry, observaciones: event.target.value })} /></Field></Editor>
-    {entries.data && <Stack spacing="3"><Box><Text fontWeight="semibold">Asientos manuales registrados</Text><Text fontSize="sm" color="gray.500">Edita un error o anula el asiento indicando el motivo.</Text></Box><Input value={entrySearch} onChange={(event) => { setEntrySearch(event.target.value); setEntryPage(1); }} placeholder="Buscar por descripción o documento" /><DataTable headers={["Fecha", "Descripción", "Origen", "Estado", ""]} empty="No hay asientos.">{visibleEntries.map((item) => <tr key={item.id}><td>{item.fecha}</td><td>{item.descripcion}</td><td>{item.origen}</td><td>{item.is_active ? "Activo" : "Anulado"}</td><td><HStack>{item.is_active && <><Button size="sm" onClick={() => { setEditingEntry(item); setEntry({ fecha: item.fecha, descripcion: item.descripcion, documento: item.documento ?? "", moneda: item.moneda, debe: String(item.debe), haber: String(item.haber), centro_resultado_id: item.centro_resultado_id ?? "", rubro_id: item.rubro_id, observaciones: item.observaciones ?? "" }); }}>Editar</Button><Button size="sm" colorScheme="red" variant="ghost" onClick={() => { const motivo = window.prompt("Motivo de anulación:"); if (motivo) void api.cancelEgypEntry(item.id, motivo).then(refresh); }}>Anular</Button></>}</HStack></td></tr>)}</DataTable><TablePagination total={matchingEntries.length} page={safeEntryPage} pageSize={entryPageSize} onPageChange={setEntryPage} /></Stack>}
+    <PageTitle title="Cierre mensual EGyP" description="Registra totales mensuales, no facturas individuales. El sistema distribuye los gastos compartidos." />
+    <SimpleGrid columns={{ base: 1, md: 3 }} spacing="4">
+      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">1. ELIGE EL MES</Text><Text mt="1" fontWeight="semibold">Cierre mensual</Text><Text mt="1" fontSize="sm" color="gray.500">La fecha se guarda automaticamente al ultimo dia del mes.</Text></CardBody></Card>
+      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">2. INGRESA EL TOTAL</Text><Text mt="1" fontWeight="semibold">Un importe por concepto</Text><Text mt="1" fontSize="sm" color="gray.500">Ventas, notas de credito, costos o gastos consolidados sin IGV.</Text></CardBody></Card>
+      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">3. REVISA EL RESULTADO</Text><Text mt="1" fontWeight="semibold">Margen y utilidad</Text><Text mt="1" fontSize="sm" color="gray.500">Los gastos sin linea se reparten segun su regla activa.</Text></CardBody></Card>
+    </SimpleGrid>
+    <Editor title="Registrar total del mes" onSubmit={() => saveEntry.mutate()} loading={saveEntry.isPending} error={saveEntry.error}>
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing="3">
+        <Field label="Mes" required><Input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></Field>
+        <Field label="Concepto" required><Select value={entry.rubro_id} onChange={(event) => setEntry({ ...entry, rubro_id: event.target.value })}><option value="">Selecciona concepto</option>{concepts.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field>
+        <Field label="Monto sin IGV" required><Input type="number" min="0" step="0.01" value={entry.importe} onChange={(event) => setEntry({ ...entry, importe: event.target.value })} /></Field>
+        <Field label="Linea de negocio"><Select value={entry.centro_resultado_id} onChange={(event) => setEntry({ ...entry, centro_resultado_id: event.target.value })}><option value="">Repartir automaticamente</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field>
+        <Field label="Descripcion"><Input value={entry.descripcion} placeholder={selectedRubro?.nombre ?? "Opcional"} onChange={(event) => setEntry({ ...entry, descripcion: event.target.value })} /></Field>
+        <Field label="Referencia"><Input value={`Cierre ${period}`} isReadOnly /></Field>
+      </SimpleGrid>
+      <Field label="Observaciones"><Textarea value={entry.observaciones} onChange={(event) => setEntry({ ...entry, observaciones: event.target.value })} /></Field>
+      <Text fontSize="sm" color="gray.500">Deja la linea vacia solo para gastos compartidos con una regla de reparto activa.</Text>
+    </Editor>
+    <Editor title="Nueva regla de reparto" onSubmit={() => saveRule.mutate()} loading={saveRule.isPending} error={saveRule.error}>
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing="3"><Field label="Nombre" required><Input value={rule.nombre} onChange={(event) => setRule({ ...rule, nombre: event.target.value })} /></Field><Field label="Concepto a repartir" required><Select value={rule.rubro_id} onChange={(event) => setRule({ ...rule, rubro_id: event.target.value })}><option value="">Selecciona concepto</option>{concepts.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Vigente desde"><Input type="date" value={rule.vigente_desde} onChange={(event) => setRule({ ...rule, vigente_desde: event.target.value })} /></Field></SimpleGrid>
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing="3" mt="3">{rule.lineas.map((line, index) => <HStack key={index}><Select value={line.centro_resultado_id} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, centro_resultado_id: event.target.value } : current) })}><option value="">Linea de negocio</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select><Input type="number" step="0.01" placeholder="%" value={line.porcentaje} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, porcentaje: event.target.value } : current) })} /></HStack>)}</SimpleGrid>
+    </Editor>
+    {rules.data && <Stack spacing="3"><Box><Text fontWeight="semibold">Reglas de reparto vigentes</Text><Text fontSize="sm" color="gray.500">Los gastos compartidos se distribuyen automaticamente al dejar la linea vacia.</Text></Box><Input value={ruleSearch} onChange={(event) => { setRuleSearch(event.target.value); setRulePage(1); }} placeholder="Buscar regla" /><DataTable headers={["Regla", "Concepto", "Distribucion"]} empty="No hay reglas activas.">{visibleRules.map((item: ReglaDistribucion) => <tr key={item.id}><td>{item.nombre}</td><td>{concepts.find((rubro) => rubro.id === item.rubro_id)?.nombre}</td><td>{item.lineas.map((line) => `${centers.data?.find((center) => center.id === line.centro_resultado_id)?.nombre ?? "Linea"}: ${line.porcentaje}%`).join(" · ")}</td></tr>)}</DataTable><TablePagination total={matchingRules.length} page={safePage} pageSize={pageSize} onPageChange={setRulePage} /></Stack>}
   </Stack>;
 }

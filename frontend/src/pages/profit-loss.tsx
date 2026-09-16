@@ -74,12 +74,11 @@ export function ProfitLossPage() {
     {summary.isLoading && <Loading />}
     {summary.isError && <ErrorBox error={summary.error} />}
     {summary.data && <>
-      <SimpleGrid columns={{ base: 1, md: 2, xl: 5 }} spacing="4">
-        <Card><CardBody><Metric label="Ingresos netos" value={money(summary.data.ingresos_netos, "PEN")} color="green.600" /></CardBody></Card>
-        <Card><CardBody><Metric label="Utilidad bruta" value={money(summary.data.utilidad_bruta, "PEN")} /></CardBody></Card>
-        <Card><CardBody><Metric label="Gastos operativos" value={money(summary.data.gastos_operativos, "PEN")} color="red.600" /></CardBody></Card>
+      <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} spacing="4">
+        <Card><CardBody><Metric label="Ingresos brutos" value={money(summary.data.ingresos_brutos, "PEN")} color="green.600" /></CardBody></Card>
+        <Card><CardBody><Metric label="Margen bruto" value={money(summary.data.utilidad_bruta, "PEN")} /></CardBody></Card>
+        <Card><CardBody><Metric label="Total de gastos" value={money(summary.data.gastos_operativos, "PEN")} color="red.600" /></CardBody></Card>
         <Card><CardBody><Metric label="Utilidad operativa" value={money(summary.data.utilidad_operativa, "PEN")} /></CardBody></Card>
-        <Card><CardBody><Metric label="Utilidad neta" value={money(summary.data.utilidad_neta, "PEN")} color={Number(summary.data.utilidad_neta) < 0 ? "red.600" : "green.600"} /></CardBody></Card>
       </SimpleGrid>
        <HStack justify="space-between" flexWrap="wrap"><Text fontSize="sm" color="gray.500">Los importes positivos aumentan el resultado; los negativos lo reducen.</Text><HStack><Button size="sm" onClick={() => setExpanded(new Set(allParents))}>Expandir todo</Button><Button size="sm" variant="outline" onClick={() => setExpanded(new Set())}>Contraer todo</Button></HStack></HStack>
        <Card><CardBody p="0"><Box className="table-wrap matrix-wrap"><Table size="sm" variant="simple" className="matrix-table"><Thead><Tr><Th minW="300px" className="matrix-label-cell">Rubro de resultado</Th>{summary.data.centros.map((center) => <Th key={center.id} isNumeric whiteSpace="nowrap">{center.nombre}</Th>)}<Th isNumeric className="matrix-total-cell">Total</Th></Tr></Thead><Tbody>{visibleRows.map((rubro) => {
