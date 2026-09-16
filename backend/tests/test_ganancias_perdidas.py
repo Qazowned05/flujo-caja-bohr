@@ -72,10 +72,10 @@ def test_imported_entries_build_a_traceable_profit_loss_summary(client_and_sessi
     sheet.title = "Asientos"
     sheet.append(TEMPLATE_HEADERS)
     sheet.append(
-        [date(2026, 6, 1), "Factura", "F001-1", "PEN", 0, 1000, "200", "VENTAS", ""]
+        ["2026-06", "VENTAS", 1000, "200", "Factura", ""]
     )
     sheet.append(
-        [date(2026, 6, 30), "Planilla", "PL-1", "PEN", 300, 0, "200", "PERSONAL", ""]
+        ["2026-06", "PERSONAL", 300, "200", "Planilla", ""]
     )
     output = io.BytesIO()
     workbook.save(output)
@@ -192,9 +192,9 @@ def test_template_requires_a_rubro_and_guides_the_user(client_and_session):
     template = client.get("/api/v1/ganancias-perdidas/plantilla.xlsx")
     workbook = load_workbook(io.BytesIO(template.content))
     assert {"Asientos", "Lineas de negocio", "Rubros", "Guia de tipificacion"} <= set(workbook.sheetnames)
-    assert "cuenta_contable" not in [cell.value for cell in workbook["Asientos"][1]]
+    assert [cell.value for cell in workbook["Asientos"][1]] == TEMPLATE_HEADERS
     assert {str(validation.sqref) for validation in workbook["Asientos"].data_validations.dataValidation} == {
-        "D2:D5000", "G2:G5000", "H2:H5000"
+        "B2:B5000", "D2:D5000"
     }
 
     invalid = client.post(

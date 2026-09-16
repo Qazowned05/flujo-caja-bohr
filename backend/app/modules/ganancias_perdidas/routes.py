@@ -1,4 +1,5 @@
 import uuid
+from calendar import monthrange
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from io import BytesIO
@@ -49,14 +50,11 @@ from app.modules.usuarios.models import User
 router = APIRouter(prefix="/ganancias-perdidas", tags=["ganancias-perdidas"])
 ZERO = Decimal("0")
 TEMPLATE_HEADERS = [
-    "fecha",
-    "descripcion",
-    "documento",
-    "moneda",
-    "debe",
-    "haber",
-    "centro_codigo",
+    "periodo",
     "rubro_codigo",
+    "monto_sin_igv",
+    "centro_codigo",
+    "descripcion",
     "observaciones",
 ]
 
@@ -410,14 +408,11 @@ def download_template(
     sheet.append(TEMPLATE_HEADERS)
     sheet.append(
         [
-            "2026-06-30",
-            "Planilla junio",
-            "PL-060001",
-            "PEN",
-            12000,
-            0,
+            "2026-06",
+            "VENTAS",
+            50000,
             "200",
-            "PERSONAL",
+            "Ventas junio",
             "",
         ]
     )
@@ -426,15 +421,11 @@ def download_template(
     sheet.freeze_panes = "A2"
     for column, width in {
         "A": 14,
-        "B": 18,
-        "C": 42,
-        "D": 20,
-        "E": 10,
-        "F": 14,
-        "G": 14,
-        "H": 18,
-        "I": 24,
-        "J": 35,
+        "B": 28,
+        "C": 18,
+        "D": 18,
+        "E": 35,
+        "F": 35,
     }.items():
         sheet.column_dimensions[column].width = width
 
@@ -456,6 +447,8 @@ def download_template(
     centers_sheet.append(["codigo", "nombre"])
     for center in centers:
         centers_sheet.append([center.codigo, center.nombre])
+    parent_ids = {rubro.padre_id for rubro in rubros if rubro.padre_id}
+    rubros = [rubro for rubro in rubros if rubro.id not in parent_ids]
     rubros_sheet = workbook.create_sheet("Rubros")
     rubros_sheet.append(["codigo", "nombre", "naturaleza", "rubro_padre"])
     rubro_by_id = {rubro.id: rubro.codigo for rubro in rubros}
@@ -486,21 +479,13 @@ def download_template(
             )
     instructions = workbook.create_sheet("Guia de tipificacion")
     instructions.append(["Campo", "Uso"])
-    instructions.append(
-        [
-            "centro_codigo",
-            "Obligatorio, excepto cuando exista una regla de distribucion vigente para el rubro.",
-        ]
-    )
+    instructions.append(["periodo", "Escribe solo mes y ano: 2026-06. El sistema usa el ultimo dia del mes."])
+    instructions.append(["monto_sin_igv", "Escribe siempre un monto positivo, sin IGV."])
+    instructions.append(["centro_codigo", "Selecciona una linea para importes directos. Dejalo vacio para repartir un gasto compartido."])
     instructions.append(
         ["rubro_codigo", "Obligatorio. Selecciona el codigo en la lista desplegable."]
     )
-    instructions.append(
-        ["debe / haber", "No pueden ser negativos; por lo menos uno debe ser mayor que cero."]
-    )
-    instructions.append(
-        ["Tipificacion", "Ventas van en Haber; descuentos, costos y gastos van en Debe."]
-    )
+    instructions.append(["Calculo", "El sistema identifica automaticamente si el importe es ingreso, descuento, costo o gasto."])
     instructions.append(["Guias", "Las hojas Lineas de negocio, Rubros y Reglas distribucion son solo referencia."])
     center_validation = DataValidation(
         type="list", formula1=f"'Lineas de negocio'!$A$2:$A${max(2, len(centers) + 1)}", allow_blank=True
@@ -508,11 +493,9 @@ def download_template(
     rubro_validation = DataValidation(
         type="list", formula1=f"'Rubros'!$A$2:$A${max(2, len(rubros) + 1)}", allow_blank=False
     )
-    currency_validation = DataValidation(type="list", formula1='"PEN,USD"', allow_blank=False)
     for validation, target in (
-        (center_validation, "G2:G5000"),
-        (rubro_validation, "H2:H5000"),
-        (currency_validation, "D2:D5000"),
+        (rubro_validation, "B2:B5000"),
+        (center_validation, "D2:D5000"),
     ):
         sheet.add_data_validation(validation)
         validation.add(target)
@@ -709,36 +692,36 @@ async def import_asientos(
             continue
         try:
             raw = dict(zip(TEMPLATE_HEADERS, row, strict=True))
-            entry_date = (
-                raw["fecha"]
-                if isinstance(raw["fecha"], date)
-                else date.fromisoformat(str(raw["fecha"]))
-            )
-            debe, haber = Decimal(str(raw["debe"] or 0)), Decimal(str(raw["haber"] or 0))
-            if debe < 0 or haber < 0 or (debe == ZERO and haber == ZERO):
-                raise ValueError(
-                    "debe y haber deben ser positivos y uno debe ser distinto de cero."
-                )
+            period = str(raw["periodo"] or "").strip()
+            if len(period) != 7 or period[4] != "-":
+                raise ValueError("periodo debe tener formato AAAA-MM.")
+            year, month = (int(value) for value in period.split("-"))
+            entry_date = date(year, month, monthrange(year, month)[1])
+            amount = Decimal(str(raw["monto_sin_igv"] or 0))
+            if amount <= ZERO:
+                raise ValueError("monto_sin_igv debe ser mayor que cero.")
+            values = {
+                "fecha": entry_date,
+                "centro_codigo": str(raw["centro_codigo"] or "").strip(),
+                "rubro_codigo": str(raw["rubro_codigo"] or "").strip(),
+                "numero_fila": row_number,
+            }
+            rubro, _ = resolve_row(db, values, row_number)
+            credit = rubro.naturaleza in {
+                NaturalezaRubro.INGRESO,
+                NaturalezaRubro.INGRESO_FINANCIERO,
+            }
             parsed.append(
                 {
-                    "fecha": entry_date,
-                    "descripcion": str(raw["descripcion"] or "").strip(),
-                    "documento": str(raw["documento"] or "").strip() or None,
-                    "moneda": str(raw["moneda"] or "PEN").strip().upper(),
-                    "debe": debe,
-                    "haber": haber,
-                    "centro_codigo": str(raw["centro_codigo"] or "").strip(),
-                    "rubro_codigo": str(raw["rubro_codigo"] or "").strip(),
+                    **values,
+                    "descripcion": str(raw["descripcion"] or "").strip() or rubro.nombre,
+                    "documento": f"Cierre {period}",
+                    "moneda": "PEN",
+                    "debe": ZERO if credit else amount,
+                    "haber": amount if credit else ZERO,
                     "observaciones": str(raw["observaciones"] or "").strip() or None,
-                    "numero_fila": row_number,
                 }
             )
-            if (
-                not parsed[-1]["descripcion"]
-                or len(parsed[-1]["moneda"]) != 3
-            ):
-                raise ValueError("descripcion y moneda ISO son obligatorios.")
-            resolve_row(db, parsed[-1], row_number)
         except (ValueError, TypeError, ArithmeticError) as exc:
             errors.append({"fila": row_number, "mensaje": str(exc)})
     if errors:
