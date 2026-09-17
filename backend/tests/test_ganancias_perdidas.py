@@ -208,3 +208,53 @@ def test_template_requires_a_rubro_and_guides_the_user(client_and_session):
         },
     )
     assert invalid.status_code == 422
+
+
+def test_history_filters_roots_and_cancels_a_complete_distribution(client_and_session):
+    client, _ = client_and_session
+    first = client.post(
+        "/api/v1/ganancias-perdidas/centros", json={"codigo": "300", "nombre": "Santa Natura"}
+    ).json()
+    second = client.post(
+        "/api/v1/ganancias-perdidas/centros", json={"codigo": "310", "nombre": "FQP"}
+    ).json()
+    rubro = client.post(
+        "/api/v1/ganancias-perdidas/rubros",
+        json={"codigo": "PERSONAL", "nombre": "Personal", "naturaleza": "GASTO_OPERATIVO"},
+    ).json()
+    client.post(
+        "/api/v1/ganancias-perdidas/reglas-distribucion",
+        json={
+            "nombre": "Personal compartido",
+            "rubro_id": rubro["id"],
+            "lineas": [
+                {"centro_resultado_id": first["id"], "porcentaje": "60"},
+                {"centro_resultado_id": second["id"], "porcentaje": "40"},
+            ],
+        },
+    )
+    created = client.post(
+        "/api/v1/ganancias-perdidas/asientos",
+        json={
+            "fecha": "2026-06-30",
+            "descripcion": "Planilla junio",
+            "observaciones": "Revision pendiente",
+            "rubro_id": rubro["id"],
+            "debe": "100",
+        },
+    )
+    assert created.status_code == 201
+    history = client.get(
+        "/api/v1/ganancias-perdidas/asientos?solo_origen=true&busqueda=revision"
+    )
+    assert history.status_code == 200
+    assert len(history.json()) == 1
+
+    entries = client.get("/api/v1/ganancias-perdidas/asientos").json()
+    distributed = next(entry for entry in entries if entry["asiento_origen_id"])
+    cancelled = client.patch(
+        f"/api/v1/ganancias-perdidas/asientos/{distributed['id']}/anular",
+        json={"motivo": "Correccion"},
+    )
+    assert cancelled.status_code == 200
+    assert client.get("/api/v1/ganancias-perdidas/asientos").json() == []

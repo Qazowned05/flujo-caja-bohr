@@ -849,12 +849,13 @@ def cancel_entry(
     db: Annotated[Session, Depends(get_db)],
 ):
     record = require_active(db, AsientoResultado, asiento_id, "Asiento")
+    origin_id = record.asiento_origen_id or record.id
     entries = list(
         db.scalars(
             select(AsientoResultado).where(
                 or_(
-                    AsientoResultado.id == asiento_id,
-                    AsientoResultado.asiento_origen_id == asiento_id,
+                    AsientoResultado.id == origin_id,
+                    AsientoResultado.asiento_origen_id == origin_id,
                 ),
                 AsientoResultado.is_active.is_(True),
             )
@@ -890,6 +891,8 @@ def list_asientos(
     fecha_hasta: date | None = None,
     rubro_id: uuid.UUID | None = None,
     centro_id: uuid.UUID | None = None,
+    busqueda: str | None = None,
+    solo_origen: bool = False,
     _: Annotated[User, Depends(get_current_user)] = None,
     db: Annotated[Session, Depends(get_db)] = None,
 ):
@@ -902,6 +905,17 @@ def list_asientos(
         statement = statement.where(AsientoResultado.rubro_id == rubro_id)
     if centro_id:
         statement = statement.where(AsientoResultado.centro_resultado_id == centro_id)
+    if busqueda and busqueda.strip():
+        value = f"%{busqueda.strip()}%"
+        statement = statement.where(
+            or_(
+                AsientoResultado.descripcion.ilike(value),
+                AsientoResultado.documento.ilike(value),
+                AsientoResultado.observaciones.ilike(value),
+            )
+        )
+    if solo_origen:
+        statement = statement.where(AsientoResultado.asiento_origen_id.is_(None))
     return list(
         db.scalars(
             statement.order_by(AsientoResultado.fecha.desc(), AsientoResultado.created_at.desc())
