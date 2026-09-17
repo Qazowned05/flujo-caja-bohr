@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Box, Button, Card, CardBody, HStack, Input, Select, SimpleGrid, Stack, Text, Textarea } from "@chakra-ui/react";
+import { Box, Button, HStack, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SimpleGrid, Stack, Text, Textarea } from "@chakra-ui/react";
 import { api, type AsientoResultado, type ReglaDistribucion } from "../client/api";
 import { DataTable, Editor, ErrorBox, Field, PageTitle, TablePagination } from "../components/common";
 import { money } from "../lib/format";
@@ -20,6 +20,8 @@ export function ProfitLossOperationsPage() {
   const [entry, setEntry] = useState(emptyEntry);
   const [editingEntry, setEditingEntry] = useState<AsientoResultado | null>(null);
   const [rule, setRule] = useState(emptyRule);
+  const [showRuleForm, setShowRuleForm] = useState(false);
+  const [selectedRule, setSelectedRule] = useState<ReglaDistribucion | null>(null);
   const [ruleSearch, setRuleSearch] = useState("");
   const [rulePage, setRulePage] = useState(1);
   const [historyPeriod, setHistoryPeriod] = useState(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`);
@@ -78,13 +80,8 @@ export function ProfitLossOperationsPage() {
   };
 
   return <Stack spacing="6">
-    <PageTitle title="Cierre mensual EGyP" description="Registra totales mensuales, no facturas individuales. El sistema distribuye los gastos compartidos." />
-    <SimpleGrid columns={{ base: 1, md: 3 }} spacing="4">
-      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">1. ELIGE EL MES</Text><Text mt="1" fontWeight="semibold">Cierre mensual</Text><Text mt="1" fontSize="sm" color="gray.500">La fecha se guarda automaticamente al ultimo dia del mes.</Text></CardBody></Card>
-      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">2. INGRESA EL TOTAL</Text><Text mt="1" fontWeight="semibold">Un importe por concepto</Text><Text mt="1" fontSize="sm" color="gray.500">Ventas, notas de credito, costos o gastos consolidados sin IGV.</Text></CardBody></Card>
-      <Card borderTop="3px solid" borderColor="brand.500"><CardBody><Text fontSize="xs" color="brand.600" fontWeight="bold">3. REVISA EL RESULTADO</Text><Text mt="1" fontWeight="semibold">Margen y utilidad</Text><Text mt="1" fontSize="sm" color="gray.500">Los gastos sin linea se reparten segun su regla activa.</Text></CardBody></Card>
-    </SimpleGrid>
-    <Editor title={editingEntry ? "Editar total mensual" : "Registrar total del mes"} onSubmit={() => saveEntry.mutate()} loading={saveEntry.isPending} error={saveEntry.error}>
+    <PageTitle title="Cierre mensual EGyP" description="Registra y corrige los totales mensuales por concepto, sin IGV." />
+    <Editor title={editingEntry ? "Editar registro" : "Ingresar registro"} onSubmit={() => saveEntry.mutate()} loading={saveEntry.isPending} error={saveEntry.error}>
       <SimpleGrid columns={{ base: 1, md: 3 }} spacing="3">
         <Field label="Mes" required><Input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></Field>
         <Field label="Concepto" required><Select value={entry.rubro_id} onChange={(event) => setEntry({ ...entry, rubro_id: event.target.value })}><option value="">Selecciona concepto</option>{concepts.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field>
@@ -97,11 +94,14 @@ export function ProfitLossOperationsPage() {
       <Text fontSize="sm" color="gray.500">Deja la linea vacia solo para gastos compartidos con una regla de reparto activa.</Text>
       {editingEntry && <Button variant="ghost" onClick={() => { setEditingEntry(null); setEntry(emptyEntry); }}>Cancelar edicion</Button>}
     </Editor>
-    <Editor title="Nueva regla de reparto" onSubmit={() => saveRule.mutate()} loading={saveRule.isPending} error={saveRule.error}>
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing="3"><Field label="Nombre" required><Input value={rule.nombre} onChange={(event) => setRule({ ...rule, nombre: event.target.value })} /></Field><Field label="Concepto a repartir" required><Select value={rule.rubro_id} onChange={(event) => setRule({ ...rule, rubro_id: event.target.value })}><option value="">Selecciona concepto</option>{concepts.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Vigente desde"><Input type="date" value={rule.vigente_desde} onChange={(event) => setRule({ ...rule, vigente_desde: event.target.value })} /></Field></SimpleGrid>
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing="3" mt="3">{rule.lineas.map((line, index) => <HStack key={index}><Select value={line.centro_resultado_id} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, centro_resultado_id: event.target.value } : current) })}><option value="">Linea de negocio</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select><Input type="number" step="0.01" placeholder="%" value={line.porcentaje} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, porcentaje: event.target.value } : current) })} /></HStack>)}</SimpleGrid>
-    </Editor>
-    {rules.data && <Stack spacing="3"><Box><Text fontWeight="semibold">Reglas de reparto vigentes</Text><Text fontSize="sm" color="gray.500">Los gastos compartidos se distribuyen automaticamente al dejar la linea vacia.</Text></Box><Input value={ruleSearch} onChange={(event) => { setRuleSearch(event.target.value); setRulePage(1); }} placeholder="Buscar regla" /><DataTable headers={["Regla", "Concepto", "Distribucion"]} empty="No hay reglas activas.">{visibleRules.map((item: ReglaDistribucion) => <tr key={item.id}><td>{item.nombre}</td><td>{concepts.find((rubro) => rubro.id === item.rubro_id)?.nombre}</td><td>{item.lineas.map((line) => `${centers.data?.find((center) => center.id === line.centro_resultado_id)?.nombre ?? "Linea"}: ${line.porcentaje}%`).join(" · ")}</td></tr>)}</DataTable><TablePagination total={matchingRules.length} page={safePage} pageSize={pageSize} onPageChange={setRulePage} /></Stack>}
+    <Stack spacing="3">
+      <HStack justify="space-between" align="start" flexWrap="wrap"><Box><Text fontWeight="semibold">Reglas de distribución</Text><Text fontSize="sm" color="gray.500">Se aplican a gastos compartidos sin línea de negocio.</Text></Box><Button size="sm" colorScheme="brand" onClick={() => setShowRuleForm(!showRuleForm)}>{showRuleForm ? "Cerrar" : "Nueva regla"}</Button></HStack>
+      {showRuleForm && <Editor title="Nueva regla de distribución" onSubmit={() => saveRule.mutate()} loading={saveRule.isPending} error={saveRule.error}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing="3"><Field label="Nombre" required><Input value={rule.nombre} onChange={(event) => setRule({ ...rule, nombre: event.target.value })} /></Field><Field label="Concepto a repartir" required><Select value={rule.rubro_id} onChange={(event) => setRule({ ...rule, rubro_id: event.target.value })}><option value="">Selecciona concepto</option>{concepts.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select></Field><Field label="Vigente desde"><Input type="date" value={rule.vigente_desde} onChange={(event) => setRule({ ...rule, vigente_desde: event.target.value })} /></Field></SimpleGrid>
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing="3" mt="3">{rule.lineas.map((line, index) => <HStack key={index}><Select value={line.centro_resultado_id} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, centro_resultado_id: event.target.value } : current) })}><option value="">Linea de negocio</option>{centers.data?.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</Select><Input type="number" step="0.01" placeholder="%" value={line.porcentaje} onChange={(event) => setRule({ ...rule, lineas: rule.lineas.map((current, currentIndex) => currentIndex === index ? { ...current, porcentaje: event.target.value } : current) })} /></HStack>)}</SimpleGrid>
+      </Editor>}
+      {rules.data && <><Input value={ruleSearch} onChange={(event) => { setRuleSearch(event.target.value); setRulePage(1); }} placeholder="Buscar regla" /><DataTable headers={["Regla", "Concepto", ""]} empty="No hay reglas activas.">{visibleRules.map((item: ReglaDistribucion) => <tr key={item.id}><td>{item.nombre}</td><td>{concepts.find((rubro) => rubro.id === item.rubro_id)?.nombre ?? "-"}</td><td><Button size="sm" variant="outline" onClick={() => setSelectedRule(item)}>Ver detalle</Button></td></tr>)}</DataTable><TablePagination total={matchingRules.length} page={safePage} pageSize={pageSize} onPageChange={setRulePage} /></>}
+    </Stack>
     <Stack spacing="3">
       <Box><Text fontWeight="semibold">Transacciones registradas</Text><Text fontSize="sm" color="gray.500">Busca, corrige registros manuales o anula una carga equivocada. La anulacion conserva la trazabilidad.</Text></Box>
       <SimpleGrid columns={{ base: 1, md: 4 }} spacing="3">
@@ -116,5 +116,14 @@ export function ProfitLossOperationsPage() {
       </DataTable>
       <TablePagination total={historyEntries.length} page={safeHistoryPage} pageSize={historyPageSize} onPageChange={setHistoryPage} />
     </Stack>
+    {selectedRule && <RuleDetailModal rule={selectedRule} centers={centers.data ?? []} concept={concepts.find((item) => item.id === selectedRule.rubro_id)?.nombre ?? "-"} onClose={() => setSelectedRule(null)} />}
   </Stack>;
+}
+
+function RuleDetailModal({ rule, centers, concept, onClose }: { rule: ReglaDistribucion; centers: { id: string; nombre: string }[]; concept: string; onClose: () => void }) {
+  return <Modal isOpen onClose={onClose} size="lg"><ModalOverlay /><ModalContent><ModalHeader>Detalle de regla</ModalHeader><ModalBody><Stack spacing="5"><SimpleGrid columns={{ base: 1, md: 2 }} spacing="4"><Detail label="Nombre" value={rule.nombre} /><Detail label="Concepto" value={concept} /><Detail label="Vigente desde" value={rule.vigente_desde ?? "Sin fecha"} /><Detail label="Estado" value={rule.is_active ? "Activa" : "Inactiva"} /></SimpleGrid><Box><Text fontSize="sm" fontWeight="semibold" mb="2">Distribución</Text><Stack spacing="2">{rule.lineas.map((line) => <HStack key={line.centro_resultado_id} justify="space-between" borderWidth="1px" borderRadius="md" px="3" py="2"><Text>{centers.find((center) => center.id === line.centro_resultado_id)?.nombre ?? "Línea no disponible"}</Text><Text fontWeight="semibold">{line.porcentaje}%</Text></HStack>)}</Stack></Box></Stack></ModalBody><ModalFooter><Button onClick={onClose}>Cerrar</Button></ModalFooter></ModalContent></Modal>;
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return <Box><Text fontSize="xs" color="gray.500">{label}</Text><Text fontSize="sm">{value}</Text></Box>;
 }
