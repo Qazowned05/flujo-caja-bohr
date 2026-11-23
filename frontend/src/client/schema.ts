@@ -583,7 +583,8 @@ export interface paths {
         get: operations["get_transaccion_api_v1_transacciones__transaccion_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Transaccion Permanently */
+        delete: operations["delete_transaccion_permanently_api_v1_transacciones__transaccion_id__delete"];
         options?: never;
         head?: never;
         /** Update Transaccion */
@@ -812,7 +813,8 @@ export interface paths {
         put?: never;
         /** Create Manual Entry */
         post: operations["create_manual_entry_api_v1_ganancias_perdidas_asientos_post"];
-        delete?: never;
+        /** Hard Delete Entries */
+        delete: operations["hard_delete_entries_api_v1_ganancias_perdidas_asientos_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -828,28 +830,46 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Hard Delete Entry */
+        delete: operations["hard_delete_entry_api_v1_ganancias_perdidas_asientos__asiento_id__delete"];
         options?: never;
         head?: never;
         /** Update Manual Entry */
         patch: operations["update_manual_entry_api_v1_ganancias_perdidas_asientos__asiento_id__patch"];
         trace?: never;
     };
-    "/api/v1/ganancias-perdidas/asientos/{asiento_id}/anular": {
+    "/api/v1/ganancias-perdidas/ultimo-periodo": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Latest Period */
+        get: operations["latest_period_api_v1_ganancias_perdidas_ultimo_periodo_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Cancel Entry */
-        patch: operations["cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch"];
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ganancias-perdidas/reporte.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Detailed Report */
+        get: operations["download_detailed_report_api_v1_ganancias_perdidas_reporte_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/ganancias-perdidas/resumen": {
@@ -933,11 +953,6 @@ export interface components {
             /** Cambios */
             cambios: components["schemas"]["ReporteCambio"][];
         };
-        /** AnularAsientoResultado */
-        AnularAsientoResultado: {
-            /** Motivo */
-            motivo: string;
-        };
         /** AsientoResultadoCreate */
         AsientoResultadoCreate: {
             /**
@@ -966,6 +981,8 @@ export interface components {
             haber: number | string;
             /** Centro Resultado Id */
             centro_resultado_id?: string | null;
+            /** Regla Distribucion Id */
+            regla_distribucion_id?: string | null;
             /**
              * Rubro Id
              * Format: uuid
@@ -1012,6 +1029,10 @@ export interface components {
             origen: components["schemas"]["OrigenAsientoResultado"];
             /** Asiento Origen Id */
             asiento_origen_id: string | null;
+            /** Regla Distribucion Nombre */
+            regla_distribucion_nombre: string | null;
+            /** Porcentaje Distribucion */
+            porcentaje_distribucion: string | null;
             /** Es Resultado */
             es_resultado: boolean;
             /** Motivo Anulacion */
@@ -1035,10 +1056,17 @@ export interface components {
             haber?: number | string | null;
             /** Centro Resultado Id */
             centro_resultado_id?: string | null;
+            /** Regla Distribucion Id */
+            regla_distribucion_id?: string | null;
             /** Rubro Id */
             rubro_id?: string | null;
             /** Observaciones */
             observaciones?: string | null;
+        };
+        /** AsientosResultadoDelete */
+        AsientosResultadoDelete: {
+            /** Ids */
+            ids: string[];
         };
         /** BancoCreate */
         BancoCreate: {
@@ -1521,11 +1549,6 @@ export interface components {
         ReglaDistribucionCreate: {
             /** Nombre */
             nombre: string;
-            /**
-             * Rubro Id
-             * Format: uuid
-             */
-            rubro_id: string;
             /** Vigente Desde */
             vigente_desde?: string | null;
             /** Vigente Hasta */
@@ -1562,11 +1585,6 @@ export interface components {
             id: string;
             /** Nombre */
             nombre: string;
-            /**
-             * Rubro Id
-             * Format: uuid
-             */
-            rubro_id: string;
             /** Vigente Desde */
             vigente_desde: string | null;
             /** Vigente Hasta */
@@ -2193,6 +2211,11 @@ export interface components {
             n_operacion?: string;
             /** Monto */
             monto?: number | string;
+        };
+        /** UltimoPeriodoResultadoRead */
+        UltimoPeriodoResultadoRead: {
+            /** Periodo */
+            periodo: string | null;
         };
         /** UserCreate */
         UserCreate: {
@@ -4162,6 +4185,35 @@ export interface operations {
             };
         };
     };
+    delete_transaccion_permanently_api_v1_transacciones__transaccion_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaccion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_transaccion_api_v1_transacciones__transaccion_id__patch: {
         parameters: {
             query?: never;
@@ -4786,6 +4838,9 @@ export interface operations {
                 fecha_hasta?: string | null;
                 rubro_id?: string | null;
                 centro_id?: string | null;
+                busqueda?: string | null;
+                solo_origen?: boolean;
+                solo_resultado?: boolean;
             };
             header?: never;
             path?: never;
@@ -4846,6 +4901,66 @@ export interface operations {
             };
         };
     };
+    hard_delete_entries_api_v1_ganancias_perdidas_asientos_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsientosResultadoDelete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hard_delete_entry_api_v1_ganancias_perdidas_asientos__asiento_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asiento_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_manual_entry_api_v1_ganancias_perdidas_asientos__asiento_id__patch: {
         parameters: {
             query?: never;
@@ -4881,20 +4996,14 @@ export interface operations {
             };
         };
     };
-    cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch: {
+    latest_period_api_v1_ganancias_perdidas_ultimo_periodo_get: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                asiento_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AnularAsientoResultado"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4902,7 +5011,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AsientoResultadoRead"];
+                    "application/json": components["schemas"]["UltimoPeriodoResultadoRead"];
+                };
+            };
+        };
+    };
+    download_detailed_report_api_v1_ganancias_perdidas_reporte_xlsx_get: {
+        parameters: {
+            query?: {
+                fecha_desde?: string | null;
+                fecha_hasta?: string | null;
+                rubro_id?: string | null;
+                centro_id?: string | null;
+                origen?: components["schemas"]["OrigenAsientoResultado"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

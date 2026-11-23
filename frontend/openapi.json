@@ -3266,6 +3266,45 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "transacciones"
+        ],
+        "summary": "Delete Transaccion Permanently",
+        "operationId": "delete_transaccion_permanently_api_v1_transacciones__transaccion_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transaccion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Transaccion Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/transacciones/{transaccion_id}/operaciones": {
@@ -4366,6 +4405,43 @@
           }
         }
       },
+      "delete": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Hard Delete Entries",
+        "operationId": "hard_delete_entries_api_v1_ganancias_perdidas_asientos_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsientosResultadoDelete"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": [
           "ganancias-perdidas"
@@ -4444,6 +4520,42 @@
                 }
               ],
               "title": "Centro Id"
+            }
+          },
+          {
+            "name": "busqueda",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Busqueda"
+            }
+          },
+          {
+            "name": "solo_origen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Solo Origen"
+            }
+          },
+          {
+            "name": "solo_resultado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Solo Resultado"
             }
           }
         ],
@@ -4531,15 +4643,13 @@
             }
           }
         }
-      }
-    },
-    "/api/v1/ganancias-perdidas/asientos/{asiento_id}/anular": {
-      "patch": {
+      },
+      "delete": {
         "tags": [
           "ganancias-perdidas"
         ],
-        "summary": "Cancel Entry",
-        "operationId": "cancel_entry_api_v1_ganancias_perdidas_asientos__asiento_id__anular_patch",
+        "summary": "Hard Delete Entry",
+        "operationId": "hard_delete_entry_api_v1_ganancias_perdidas_asientos__asiento_id__delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4557,24 +4667,153 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AnularAsientoResultado"
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/v1/ganancias-perdidas/ultimo-periodo": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Latest Period",
+        "operationId": "latest_period_api_v1_ganancias_perdidas_ultimo_periodo_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AsientoResultadoRead"
+                  "$ref": "#/components/schemas/UltimoPeriodoResultadoRead"
                 }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ganancias-perdidas/reporte.xlsx": {
+      "get": {
+        "tags": [
+          "ganancias-perdidas"
+        ],
+        "summary": "Download Detailed Report",
+        "operationId": "download_detailed_report_api_v1_ganancias_perdidas_reporte_xlsx_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fecha_desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Desde"
+            }
+          },
+          {
+            "name": "fecha_hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Hasta"
+            }
+          },
+          {
+            "name": "rubro_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rubro Id"
+            }
+          },
+          {
+            "name": "centro_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Centro Id"
+            }
+          },
+          {
+            "name": "origen",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OrigenAsientoResultado"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Origen"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -4821,20 +5060,6 @@
         ],
         "title": "ActualizacionMasivaResponse"
       },
-      "AnularAsientoResultado": {
-        "properties": {
-          "motivo": {
-            "type": "string",
-            "minLength": 3,
-            "title": "Motivo"
-          }
-        },
-        "type": "object",
-        "required": [
-          "motivo"
-        ],
-        "title": "AnularAsientoResultado"
-      },
       "AsientoResultadoCreate": {
         "properties": {
           "fecha": {
@@ -4905,6 +5130,18 @@
               }
             ],
             "title": "Centro Resultado Id"
+          },
+          "regla_distribucion_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regla Distribucion Id"
           },
           "rubro_id": {
             "type": "string",
@@ -5038,6 +5275,29 @@
             ],
             "title": "Asiento Origen Id"
           },
+          "regla_distribucion_nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regla Distribucion Nombre"
+          },
+          "porcentaje_distribucion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Porcentaje Distribucion"
+          },
           "es_resultado": {
             "type": "boolean",
             "title": "Es Resultado"
@@ -5074,6 +5334,8 @@
           "lote_id",
           "origen",
           "asiento_origen_id",
+          "regla_distribucion_nombre",
+          "porcentaje_distribucion",
           "es_resultado",
           "motivo_anulacion",
           "is_active"
@@ -5175,6 +5437,18 @@
             ],
             "title": "Centro Resultado Id"
           },
+          "regla_distribucion_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regla Distribucion Id"
+          },
           "rubro_id": {
             "anyOf": [
               {
@@ -5201,6 +5475,24 @@
         },
         "type": "object",
         "title": "AsientoResultadoUpdate"
+      },
+      "AsientosResultadoDelete": {
+        "properties": {
+          "ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ids"
+        ],
+        "title": "AsientosResultadoDelete"
       },
       "BancoCreate": {
         "properties": {
@@ -6434,11 +6726,6 @@
             "minLength": 1,
             "title": "Nombre"
           },
-          "rubro_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Rubro Id"
-          },
           "vigente_desde": {
             "anyOf": [
               {
@@ -6475,7 +6762,6 @@
         "type": "object",
         "required": [
           "nombre",
-          "rubro_id",
           "lineas"
         ],
         "title": "ReglaDistribucionCreate"
@@ -6540,11 +6826,6 @@
             "type": "string",
             "title": "Nombre"
           },
-          "rubro_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Rubro Id"
-          },
           "vigente_desde": {
             "anyOf": [
               {
@@ -6585,7 +6866,6 @@
         "required": [
           "id",
           "nombre",
-          "rubro_id",
           "vigente_desde",
           "vigente_hasta",
           "is_active",
@@ -8560,6 +8840,26 @@
         "additionalProperties": false,
         "type": "object",
         "title": "TransaccionUpdate"
+      },
+      "UltimoPeriodoResultadoRead": {
+        "properties": {
+          "periodo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Periodo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo"
+        ],
+        "title": "UltimoPeriodoResultadoRead"
       },
       "UserCreate": {
         "properties": {

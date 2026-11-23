@@ -326,10 +326,18 @@ export const api = {
   updateEgypRegla: (id: string, body: Schema["ReglaDistribucionCreate"]) => json(`/api/v1/ganancias-perdidas/reglas-distribucion/${id}`, "PATCH", body),
   deleteEgypRegla: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/reglas-distribucion/${id}`, { method: "DELETE" }),
   egypSummary: (params: URLSearchParams) => request<EgypSummary>(`/api/v1/ganancias-perdidas/resumen?${params}`),
+  egypLatestPeriod: () =>
+    request<{ periodo: string | null }>("/api/v1/ganancias-perdidas/ultimo-periodo"),
   egypEntries: (params: URLSearchParams) => request<AsientoResultado[]>(`/api/v1/ganancias-perdidas/asientos?${params}`),
   createEgypEntry: (body: Schema["AsientoResultadoCreate"]) => json("/api/v1/ganancias-perdidas/asientos", "POST", body) as Promise<AsientoResultado>,
   updateEgypEntry: (id: string, body: Schema["AsientoResultadoUpdate"]) => json(`/api/v1/ganancias-perdidas/asientos/${id}`, "PATCH", body) as Promise<AsientoResultado>,
-  cancelEgypEntry: (id: string, motivo: string) => json(`/api/v1/ganancias-perdidas/asientos/${id}/anular`, "PATCH", { motivo }) as Promise<AsientoResultado>,
+  deleteEgypEntry: (id: string) => request<unknown>(`/api/v1/ganancias-perdidas/asientos/${id}`, { method: "DELETE" }),
+  deleteEgypEntries: (ids: string[]) =>
+    request<unknown>("/api/v1/ganancias-perdidas/asientos", {
+      method: "DELETE",
+      body: JSON.stringify({ ids }),
+      headers: { "Content-Type": "application/json" },
+    }),
   importEgyp: (file: File) => {
     const form = new FormData();
     form.append("archivo", file);

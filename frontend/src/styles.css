@@ -11,7 +11,7 @@ body {
   overflow-x: hidden;
 }
 .metric-card {
-  border-top: 3px solid #1d7a64;
+  border-top: 3px solid #1b4a9c;
 }
 .table-wrap {
   max-width: 100%;
@@ -82,12 +82,12 @@ body {
 }
 
 .matrix-initial-balance-row > td {
-  background: #e6f4ef;
+  background: #eaf1fc;
 }
 
 .matrix-initial-balance-row > .matrix-label-cell,
 .matrix-initial-balance-row > .matrix-total-cell {
-  background: #e6f4ef;
+  background: #eaf1fc;
 }
 
 .matrix-final-balance-row > td {
@@ -108,26 +108,61 @@ body {
   background: #fff7e6;
 }
 
-.matrix-gross-operating-row > td {
-  background: #4a5568;
-  color: #fff;
+.matrix-group-row > td {
+  background: #dbe3ed;
 }
 
+.matrix-group-row > .matrix-label-cell,
+.matrix-group-row > .matrix-total-cell {
+  background: #dbe3ed;
+  color: #26364a;
+}
+
+.matrix-group-row > td,
+.matrix-gross-operating-row > td,
+.matrix-net-operating-row > td {
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.matrix-group-row > td:first-child,
+.matrix-gross-operating-row > td:first-child,
+.matrix-net-operating-row > td:first-child {
+  border-left: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.matrix-group-row > td:last-child,
+.matrix-gross-operating-row > td:last-child,
+.matrix-net-operating-row > td:last-child {
+  border-right: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.matrix-gross-operating-row > td,
 .matrix-gross-operating-row > .matrix-label-cell,
 .matrix-gross-operating-row > .matrix-total-cell {
-  background: #4a5568;
-  color: #fff;
+  background: #edf5ff;
+  color: #0c4a6e;
 }
 
 .matrix-net-operating-row > td {
-  background: #4a5568;
-  color: #fff;
+  background: #e6f0ff;
+  color: #1e3a8a;
 }
 
 .matrix-net-operating-row > .matrix-label-cell,
 .matrix-net-operating-row > .matrix-total-cell {
-  background: #4a5568;
-  color: #fff;
+  background: #e6f0ff;
+  color: #1e3a8a;
+}
+
+.matrix-expense-parent-row > td {
+  background: #e8eef7;
+}
+
+.matrix-expense-parent-row > .matrix-label-cell,
+.matrix-expense-parent-row > .matrix-total-cell {
+  background: #e8eef7;
+  color: #2d3748;
 }
 
 .matrix-concept-row > td {
@@ -162,5 +197,5 @@ body {
 }
 
 .matrix-daily-cell:hover {
-  background: #edf7f4;
+  background: #eaf1fc;
 }

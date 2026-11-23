@@ -13,7 +13,9 @@ import { ImportPage } from "./pages/import";
 import { Login } from "./pages/login";
 import { ProfitLossAdminPage } from "./pages/profit-loss-admin";
 import { ProfitLossOperationsPage } from "./pages/profit-loss-operations";
+import { ProfitLossRecordsPage } from "./pages/profit-loss-records";
 import { ProfitLossPage } from "./pages/profit-loss";
+import { ProfitLossReportsPage } from "./pages/profit-loss-reports";
 import { ManualMovement } from "./pages/manual-movement";
 import { Reports } from "./pages/reports";
 import { SellersPage } from "./pages/sellers-admin";
@@ -56,8 +58,10 @@ const tipificationsRoute = createRoute({ getParentRoute: () => layoutRoute, path
 const currenciesRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/divisas", component: CurrenciesPage, beforeLoad: adminBeforeLoad });
 const profitLossAdminRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas", component: ProfitLossAdminPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
 const profitLossOperationsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas/operacion", component: ProfitLossOperationsPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
-const router = createRouter({ routeTree: rootRoute.addChildren([loginRoute, layoutRoute.addChildren([indexRoute, transactionsRoute, manualRoute, importRoute, reportsRoute, profitLossRoute, tipificationsReferenceRoute, usersRoute, banksRoute, branchesRoute, sellersRoute, tipificationsRoute, currenciesRoute, profitLossAdminRoute, profitLossOperationsRoute])]) });
+const profitLossRecordsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas/registros", component: ProfitLossRecordsPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
+const profitLossReportsRoute = createRoute({ getParentRoute: () => layoutRoute, path: "/administracion/ganancias-perdidas/reportes", component: ProfitLossReportsPage, beforeLoad: async () => { if (!profitAndLossEnabled) throw redirect({ to: "/" }); await adminBeforeLoad(); } });
+const router = createRouter({ routeTree: rootRoute.addChildren([loginRoute, layoutRoute.addChildren([indexRoute, transactionsRoute, manualRoute, importRoute, reportsRoute, profitLossRoute, tipificationsReferenceRoute, usersRoute, banksRoute, branchesRoute, sellersRoute, tipificationsRoute, currenciesRoute, profitLossAdminRoute, profitLossOperationsRoute, profitLossRecordsRoute, profitLossReportsRoute])]) });
 declare module "@tanstack/react-router" { interface Register { router: typeof router } }
 
-const theme = extendTheme({ fonts: { heading: "Inter, system-ui, sans-serif", body: "Inter, system-ui, sans-serif" }, colors: { brand: { 500: "#1d7a64", 600: "#176651" } } });
+const theme = extendTheme({ fonts: { heading: "Inter, system-ui, sans-serif", body: "Inter, system-ui, sans-serif" }, colors: { brand: { 50: "#EAF1FC", 100: "#D4E2F8", 200: "#ABC5F0", 300: "#82A8E9", 400: "#598BE1", 500: "#1B4A9C", 600: "#173F85", 700: "#12336D", 800: "#0E2755", 900: "#091B3C" } } });
 ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><ChakraProvider theme={theme}><QueryClientProvider client={new QueryClient()}><RouterProvider router={router} /></QueryClientProvider></ChakraProvider></React.StrictMode>);

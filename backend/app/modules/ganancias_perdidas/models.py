@@ -71,7 +71,6 @@ class ReglaDistribucion(SoftDeleteMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     nombre: Mapped[str] = mapped_column(String(255), unique=True)
-    rubro_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("rubros_resultado.id"), index=True)
     vigente_desde: Mapped[date | None] = mapped_column(Date, nullable=True)
     vigente_hasta: Mapped[date | None] = mapped_column(Date, nullable=True)
     lineas: Mapped[list["ReglaDistribucionLinea"]] = relationship(
@@ -138,6 +137,8 @@ class AsientoResultado(SoftDeleteMixin, Base):
     asiento_origen_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("asientos_resultado.id"), nullable=True, index=True
     )
+    regla_distribucion_nombre: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    porcentaje_distribucion: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     es_resultado: Mapped[bool] = mapped_column(default=True, server_default="true", nullable=False)
     motivo_anulacion: Mapped[str | None] = mapped_column(Text, nullable=True)
     anulado_by_id: Mapped[uuid.UUID | None] = mapped_column(

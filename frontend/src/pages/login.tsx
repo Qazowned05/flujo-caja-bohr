@@ -12,7 +12,7 @@ export function Login() {
     mutationFn: () => api.login(email, password),
     onSuccess: (result) => {
       localStorage.setItem(api.tokenKey, result.access_token);
-      void navigate({ to: "/" });
+      void navigate({ to: "/ganancias-perdidas" });
     },
   });
   const sessionExpired = new URLSearchParams(window.location.search).get("expired") === "1";

@@ -56,7 +56,6 @@ class ReglaDistribucionLineaCreate(BaseModel):
 
 class ReglaDistribucionCreate(BaseModel):
     nombre: str = Field(min_length=1, max_length=255)
-    rubro_id: uuid.UUID
     vigente_desde: date | None = None
     vigente_hasta: date | None = None
     lineas: list[ReglaDistribucionLineaCreate] = Field(min_length=2)
@@ -76,7 +75,6 @@ class ReglaDistribucionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     nombre: str
-    rubro_id: uuid.UUID
     vigente_desde: date | None
     vigente_hasta: date | None
     is_active: bool
@@ -99,6 +97,8 @@ class AsientoResultadoRead(BaseModel):
     lote_id: uuid.UUID | None
     origen: OrigenAsientoResultado
     asiento_origen_id: uuid.UUID | None
+    regla_distribucion_nombre: str | None
+    porcentaje_distribucion: Decimal | None
     es_resultado: bool
     motivo_anulacion: str | None
     is_active: bool
@@ -112,6 +112,7 @@ class AsientoResultadoCreate(BaseModel):
     debe: Decimal = Field(default=Decimal("0"), ge=0)
     haber: Decimal = Field(default=Decimal("0"), ge=0)
     centro_resultado_id: uuid.UUID | None = None
+    regla_distribucion_id: uuid.UUID | None = None
     rubro_id: uuid.UUID
     observaciones: str | None = None
 
@@ -119,6 +120,8 @@ class AsientoResultadoCreate(BaseModel):
     def validate_amount(self):
         if self.debe == 0 and self.haber == 0:
             raise ValueError("debe y haber no pueden ser ambos cero.")
+        if self.centro_resultado_id and self.regla_distribucion_id:
+            raise ValueError("centro_resultado_id y regla_distribucion_id no pueden usarse juntos.")
         return self
 
 
@@ -131,8 +134,8 @@ class AsientoResultadoUpdate(AsientoResultadoCreate):
     rubro_id: uuid.UUID | None = None
 
 
-class AnularAsientoResultado(BaseModel):
-    motivo: str = Field(min_length=3)
+class AsientosResultadoDelete(BaseModel):
+    ids: list[uuid.UUID] = Field(min_length=1)
 
 
 class ResultadoRubroRead(BaseModel):
@@ -173,3 +176,7 @@ class ImportResultadoRead(BaseModel):
     lote_id: uuid.UUID
     total_filas: int
     filas_nuevas: int
+
+
+class UltimoPeriodoResultadoRead(BaseModel):
+    periodo: str | None
